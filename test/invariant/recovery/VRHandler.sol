@@ -13,49 +13,63 @@ contract VRHandler is Test {
 
     mapping(address => uint256) public allocated;
     mapping(address => uint256) public claimedAmount;
+    address[] public users;
+    mapping(address => bool) public seen;
+    address public owner;
 
-    constructor(VoluntaryRecovery _vr, ERC20Mock _usdc) {
+    constructor(VoluntaryRecovery _vr, ERC20Mock _usdc, address _owner) {
         vr = _vr;
         usdc = _usdc;
+        owner = _owner;
+    }
+    
+    function getUsers() external view returns(address[] memory) {
+        return users;
     }
 
-    function act(uint256 privateKey, uint96 rawAmount) public {
+    function act(uint8 userIndex, uint96 rawAmount) public {
+        
         uint256 SECP_ORDER = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
-        privateKey = bound(privateKey, 1, SECP_ORDER - 1);
+        uint256 privateKey = uint256(userIndex) + 1_000_000;
+        privateKey = privateKey % (SECP_ORDER - 1) + 1;
 
+    
         address user = vm.addr(privateKey);
         uint256 amount = bound(uint256(rawAmount), 1e6, 1_000_000e6); 
 
-        if (allocated[user] == 0) {
-            address[] memory users = new address[](1);
-            uint256[] memory amounts = new uint256[](1);
-            users[0] = user;
-            amounts[0] = amount;
+        if (!seen[user]) {
+            seen[user] = true;
+            users.push(user);
+
+            address[] memory _users = new address[](1);
+            uint256[] memory _amounts = new uint256[](1);
+            _users[0] = user;
+            _amounts[0] = amount;
 
             allocated[user] = amount;
-            vr.setAllocations(users, amounts);
-            usdc.mint(address(vr), amount);
+
+            vm.prank(owner);
+            vr.setAllocations(_users, _amounts);
+            usdc.mint(address(vr), amount*2);
         }
 
         if (!vr.disclaimerAccepted(user)) {
-            bytes32 msgHash = keccak256(abi.encodePacked("VoluntaryRecovery:", user, block.chainid, address(vr), allocated[user]));
-            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(msgHash);
-            bytes memory sig = sign(privateKey, ethHash);
+            bytes32 msgHash = keccak256(abi.encodePacked(
+                "VoluntaryRecovery:", user, block.chainid, address(vr), allocated[user]
+            ));
+            bytes memory sig = sign(privateKey, msgHash);
 
             vm.prank(user);
-            try vr.acceptDisclaimer(sig) {} catch {}
-        }
-
-        if (!vr.claimed(user)) {
-            vm.prank(user);
-            try vr.claim() {
-                claimedAmount[user] = allocated[user];
+            try vr.acceptDisclaimer(sig) {
+                vm.prank(user);
+                try vr.claim() {
+                    claimedAmount[user] = allocated[user];
+                } catch {}
             } catch {}
         }
     }
 
-        // ----- internal
-
+    // ----- internal
     function sign(uint256 privKey, bytes32 messageHash) internal pure returns (bytes memory) {
         bytes32 ethSigned = MessageHashUtils.toEthSignedMessageHash(messageHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, ethSigned);
