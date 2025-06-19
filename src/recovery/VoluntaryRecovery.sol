@@ -80,35 +80,29 @@ contract VoluntaryRecovery is Ownable, ReentrancyGuard {
 
 
     // ----------- PUBLIC ------------
-    /// @notice User accepts the disclaimer by registering a valid signature
-    function acceptDisclaimer(bytes calldata signature) external {
-        uint256 amount = allocated[msg.sender];
-        require(amount > 0, VoluntaryRecovery_NoAllocation());
-
-        bytes32 messageHash = keccak256(abi.encodePacked(
-            "VoluntaryRecovery:", block.chainid, address(this), msg.sender, amount
-        ));
-        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
-
-        require(ethSignedMessageHash.recover(signature) == msg.sender, VoluntaryRecovery_InvalidSignature());
-
-        disclaimerAccepted[msg.sender] = true;
-        emit DisclaimerAccepted(msg.sender);
-    }
-
-    /// @notice User claims USDC if allocation and disclaimer are valid
-    function claim() external nonReentrant {
+    function acceptDisclaimerAndClaim(bytes calldata signature) external nonReentrant {
         address user = msg.sender;
-        require(!claimed[user], VoluntaryRecovery_AlreadyClaimed());
-        require(disclaimerAccepted[user], VoluntaryRecovery_DisclaimerNotAccepted());
 
         uint256 amount = allocated[user];
-        require(amount > 0,VoluntaryRecovery_NoAllocation());
+        require(amount > 0, VoluntaryRecovery_NoAllocation());
 
+        require(!claimed[user], VoluntaryRecovery_AlreadyClaimed());
+
+        // verify disclaimer signature
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            "VoluntaryRecovery:", block.chainid, address(this), user, amount
+        ));
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        require(ethSignedMessageHash.recover(signature) == user, VoluntaryRecovery_InvalidSignature());
+
+        // mark disclaimer accepted and claimed
+        disclaimerAccepted[user] = true;
         claimed[user] = true;
 
+        // transfer funds
         usdc.safeTransfer(user, amount);
+
+        emit DisclaimerAccepted(user);
         emit Claimed(user, amount);
     }
-
 }

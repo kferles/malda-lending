@@ -19,7 +19,7 @@ contract VoluntaryRecoveryTest is Test {
     uint256 privateKey2;
 
     function setUp() public {
-        usdc = new ERC20Mock("USDC","USDC", 6, address(this), address(0), 1e18);
+        usdc = new ERC20Mock("USDC", "USDC", 6, address(this), address(0), 1e18);
         vr = new VoluntaryRecovery(address(usdc), address(this));
 
         (user1, privateKey1) = makeAddrAndKey("user1");
@@ -54,17 +54,13 @@ contract VoluntaryRecoveryTest is Test {
         bytes memory sig = sign(privateKey1, messageHash);
 
         vm.prank(user1);
-        vr.acceptDisclaimer(sig);
+        vr.acceptDisclaimerAndClaim(sig);
+
         assertTrue(vr.disclaimerAccepted(user1));
-
-        vm.prank(user1);
-        vr.claim();
-
         assertTrue(vr.claimed(user1));
-        assertEq(usdc.balanceOf(user1), uint256(150e6));
+        assertEq(usdc.balanceOf(user1), 150e6);
     }
 
-    
     function testCannotAcceptInvalidSignature() public {
         address[] memory users = new address[](1);
         users[0] = user1;
@@ -77,19 +73,7 @@ contract VoluntaryRecoveryTest is Test {
 
         vm.prank(user1);
         vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_InvalidSignature.selector);
-        vr.acceptDisclaimer(badSig);
-    }
-
-    function testClaimFailsIfNotAccepted() public {
-        address[] memory users = new address[](1);
-        users[0] = user1;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = 300e6;
-        vr.setAllocations(users, amounts);
-
-        vm.prank(user1);
-        vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_DisclaimerNotAccepted.selector);
-        vr.claim();
+        vr.acceptDisclaimerAndClaim(badSig);
     }
 
     function testClaimFailsIfAlreadyClaimed() public {
@@ -97,7 +81,7 @@ contract VoluntaryRecoveryTest is Test {
 
         vm.prank(user1);
         vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_AlreadyClaimed.selector);
-        vr.claim();
+        vr.acceptDisclaimerAndClaim(sign(privateKey1, keccak256(abi.encodePacked("VoluntaryRecovery:", block.chainid, address(vr), user1, uint256(150e6)))));
     }
 
     function testWithdrawUnclaimedFailsBeforeTimelock() public {
@@ -105,7 +89,6 @@ contract VoluntaryRecoveryTest is Test {
         vr.withdrawUnclaimed(owner, 100e6);
     }
 
-    
     function testWithdrawUnclaimedWorksAfterTimelock() public {
         vm.warp(block.timestamp + 48 days + 1);
         uint256 balanceBefore = usdc.balanceOf(owner);
@@ -120,9 +103,8 @@ contract VoluntaryRecoveryTest is Test {
 
         vm.prank(user1);
         vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_NoAllocation.selector);
-        vr.acceptDisclaimer(sig);
+        vr.acceptDisclaimerAndClaim(sig);
     }
-
 
     function testFuzz_AcceptDisclaimerAndClaim(uint256 userPrivateKey, uint96 rawAmount) public {
         userPrivateKey = bound(userPrivateKey, 1, type(uint256).max - 1);
@@ -130,21 +112,21 @@ contract VoluntaryRecoveryTest is Test {
         userPrivateKey = bound(userPrivateKey, 1, SECP_ORDER - 1);
         address user = vm.addr(userPrivateKey);
         vm.assume(user != address(0));
-        vm.assume(user != owner); 
-        uint256 amount = uint256(rawAmount) % 1_000_000e6; 
+        vm.assume(user != owner);
+        uint256 amount = uint256(rawAmount) % 1_000_000e6;
         bytes32 msgHash;
         bytes memory sig;
+
         if (amount == 0) {
             msgHash = keccak256(abi.encodePacked("VoluntaryRecovery:", block.chainid, address(vr), user, uint256(0)));
             sig = sign(userPrivateKey, msgHash);
 
             vm.prank(user);
             vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_NoAllocation.selector);
-            vr.acceptDisclaimer(sig);
+            vr.acceptDisclaimerAndClaim(sig);
             return;
         }
 
-        // allo
         address[] memory users = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         users[0] = user;
@@ -155,20 +137,15 @@ contract VoluntaryRecoveryTest is Test {
         sig = sign(userPrivateKey, msgHash);
 
         vm.prank(user);
-        vr.acceptDisclaimer(sig);
+        vr.acceptDisclaimerAndClaim(sig);
         assertTrue(vr.disclaimerAccepted(user));
-
-        vm.prank(user);
-        vr.claim();
         assertTrue(vr.claimed(user));
         assertEq(usdc.balanceOf(user), amount);
 
         vm.prank(user);
         vm.expectRevert(VoluntaryRecovery.VoluntaryRecovery_AlreadyClaimed.selector);
-        vr.claim();
+        vr.acceptDisclaimerAndClaim(sig);
     }
-
-
 
     // ----- internal
 

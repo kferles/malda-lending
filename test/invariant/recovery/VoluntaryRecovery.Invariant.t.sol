@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {Test} from "forge-std/Test.sol";
 import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
@@ -14,25 +13,24 @@ contract InvariantVoluntaryRecoveryTest is StdInvariant, Test {
     VRHandler public handler;
 
     function setUp() public {
-        usdc = new ERC20Mock("USDC","USDC", 6, address(this), address(0), 1e18);
+        usdc = new ERC20Mock("USDC", "USDC", 6, address(this), address(0), 1e18);
         vr = new VoluntaryRecovery(address(usdc), address(this));
         handler = new VRHandler(vr, usdc, address(this));
         vm.label(address(vr), "VoluntaryRecovery");
         vm.label(address(usdc), "USDC");
 
         targetContract(address(handler));
-    
+
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = handler.act.selector;
         targetSelector(FuzzSelector({
             addr: address(handler),
             selectors: selectors
         }));
-        
     }
 
     function invariant_NoClaimWithoutDisclaimerSigned() public {
-        address[] memory users = new address[](0);// handler.getUsers();
+        address[] memory users = handler.getUsers();
 
         for (uint160 i; i < users.length; ++i) {
             address user = users[i];
