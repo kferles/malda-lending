@@ -45,7 +45,6 @@ import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
-import {DeployConnextBridge} from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
 import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
 
@@ -87,7 +86,6 @@ contract DeployProtocolTestnet is DeployBaseRelease {
     UpdateAllowedChains updateAllowedChains;
     DeployRebalancer deployRebalancer;
     DeployAcrossBridge deployAcrossBridge;
-    DeployConnextBridge deployConnextBridge;
     DeployEverclearBridge deployEverclearBridge;
     DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
@@ -179,10 +177,6 @@ contract DeployProtocolTestnet is DeployBaseRelease {
                 configs[network].chainId
             );
         }
-        console.log(" --- Deploying connextBridge");
-        address connextBridge =
-            deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
-        console.log(" --- Deployed connextBridge at ", connextBridge);
         console.log(" --- Deploying everclearBridge");
         address everclearBridge =
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);

@@ -16,12 +16,12 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployEverclearBridge is Script {
-    function run(address roles, address spoke, Deployer deployer) public returns (address) {
+    function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
         bytes32 salt = getSalt("EverclearBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =
-            deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, spoke)));
+            deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
         vm.stopBroadcast();
 
         console.log(" EverclearBridge deployed at: %s", created);

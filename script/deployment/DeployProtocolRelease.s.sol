@@ -49,7 +49,6 @@ import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
-import {DeployConnextBridge} from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
 import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
 
@@ -103,7 +102,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
     UpdateAllowedChains updateAllowedChains;
     DeployRebalancer deployRebalancer;
     DeployAcrossBridge deployAcrossBridge;
-    DeployConnextBridge deployConnextBridge;
     DeployEverclearBridge deployEverclearBridge;
     DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
@@ -392,7 +390,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
-            address timelock = _deployTimelock(owner);
+            _deployTimelock(owner);
 
             deployPauser = new DeployPauser();
 
@@ -423,7 +421,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
             deployRebalancer = new DeployRebalancer();
             deployAcrossBridge = new DeployAcrossBridge();
-            deployConnextBridge = new DeployConnextBridge();
             deployEverclearBridge = new DeployEverclearBridge();
             deployLZBridge = new DeployLZBridge();
             //_deployAndConfigRebalancerAndBridges(network, rolesContract);
@@ -467,10 +464,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 configs[network].chainId
             );
         }
-        console.log(" --- Deploying connextBridge");
-        address connextBridge =
-            deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
-        console.log(" --- Deployed connextBridge at ", connextBridge);
+
         console.log(" --- Deploying everclearBridge");
         address everclearBridge =
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
@@ -696,7 +690,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         address operator,
         address market,
         uint256 collateralFactor,
-        uint256 reserveFactor,
+        uint256,
         uint256 liquidationBonus,
         uint256 borrowCap,
         uint256 supplyCap,
