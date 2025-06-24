@@ -24,7 +24,6 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 import {IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
@@ -55,8 +54,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         string memory symbol_,
         uint8 decimals_
     ) internal {
-        require(accrualBlockTimestamp == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
-        require(initialExchangeRateMantissa_ > 0, mToken_ExchangeRateNotValid());
+        require(accrualBlockTimestamp == 0 && borrowIndex == 0, mt_AlreadyInitialized());
+        require(initialExchangeRateMantissa_ > 0, mt_ExchangeRateNotValid());
         // Set initial exchange rate
         initialExchangeRateMantissa = initialExchangeRateMantissa_;
 
@@ -70,10 +69,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
-    }
-
-    function isMToken() external pure override returns (bool) {
-        return true;
     }
 
     // ----------- TOKENS VIEW ------------
@@ -167,9 +162,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @inheritdoc ImToken
      */
     function approve(address spender, uint256 amount) external override returns (bool) {
-        address src = msg.sender;
-        transferAllowances[src][spender] = amount;
-        emit Approval(src, spender, amount);
+        transferAllowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
         return true;
     }
 
@@ -211,13 +205,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function reduceReserves(uint256 reduceAmount) external override nonReentrant {
         require(
             msg.sender == admin || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_RESERVE()),
-            mToken_OnlyAdminOrRole()
+            mt_OnlyAdminOrRole()
         );
 
         _accrueInterest();
 
-        require(_getCashPrior() >= reduceAmount, mToken_ReserveCashNotAvailable());
-        require(reduceAmount <= totalReserves, mToken_ReserveCashNotAvailable());
+        require(_getCashPrior() >= reduceAmount, mt_ReserveCashNotAvailable());
+        require(reduceAmount <= totalReserves, mt_ReserveCashNotAvailable());
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -394,7 +388,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function _seize(address seizerToken, address liquidator, address borrower, uint256 seizeTokens) internal {
         IOperatorDefender(operator).beforeMTokenSeize(address(this), seizerToken, liquidator, borrower);
 
-        require(borrower != liquidator, mToken_InvalidInput());
+        require(borrower != liquidator, mt_InvalidInput());
 
         /*
          * We calculate the new borrower and liquidator token balances, failing on underflow/overflow:
@@ -475,14 +469,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         address mTokenCollateral,
         bool doTransfer
     ) internal {
-        require(borrower != liquidator, mToken_InvalidInput());
-        require(repayAmount > 0 && repayAmount != type(uint256).max, mToken_InvalidInput());
+        require(borrower != liquidator, mt_InvalidInput());
+        require(repayAmount > 0 && repayAmount != type(uint256).max, mt_InvalidInput());
 
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
         require(
             ImToken(mTokenCollateral).accrualBlockTimestamp() == _getBlockTimestamp(),
-            mToken_CollateralBlockTimestampNotValid()
+            mt_CollateralBlockTimestampNotValid()
         );
 
         /* Fail if repayBorrow fails */
@@ -497,7 +491,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             IOperator(operator).liquidateCalculateSeizeTokens(address(this), mTokenCollateral, actualRepayAmount);
 
         /* Revert if borrower collateral token balance < seizeTokens */
-        require(ImToken(mTokenCollateral).balanceOf(borrower) >= seizeTokens, mToken_LiquidateSeizeTooMuch());
+        require(ImToken(mTokenCollateral).balanceOf(borrower) >= seizeTokens, mt_LiquidateSeizeTooMuch());
 
         // If this is also the collateral, run _seize to avoid re-entrancy, otherwise make an external call
         if (address(mTokenCollateral) == address(this)) {
@@ -566,7 +560,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
-        require(_getCashPrior() >= borrowAmount, mToken_BorrowCashNotAvailable());
+        require(_getCashPrior() >= borrowAmount, mt_BorrowCashNotAvailable());
 
         /*
          * We calculate the new borrower and total borrow balances, failing on overflow:
@@ -608,7 +602,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         private
         returns (uint256 redeemAmount)
     {
-        require(redeemTokensIn == 0 || redeemAmountIn == 0, mToken_InvalidInput());
+        require(redeemTokensIn == 0 || redeemAmountIn == 0, mt_InvalidInput());
 
         /* exchangeRate = invoke Exchange Rate Stored() */
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
@@ -632,12 +626,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             redeemTokens = div_(redeemAmountIn, exchangeRate);
             redeemAmount = redeemAmountIn;
         }
-        if (redeemTokens == 0 && redeemAmount == 0) revert mToken_RedeemEmpty();
+        if (redeemTokens == 0 && redeemAmount == 0) revert mt_RedeemEmpty();
 
         /* Fail if redeem not allowed */
         IOperatorDefender(operator).beforeMTokenRedeem(address(this), redeemer, redeemTokens);
 
-        require(_getCashPrior() >= redeemAmount, mToken_RedeemCashNotAvailable());
+        require(_getCashPrior() >= redeemAmount, mt_RedeemCashNotAvailable());
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -701,7 +695,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         uint256 mintTokens = div_(actualMintAmount, exchangeRate);
-        require(mintTokens >= minAmountOut, mToken_MinAmountNotValid());
+        require(mintTokens >= minAmountOut, mt_MinAmountNotValid());
 
         // avoid exchangeRate manipulation
         if (totalSupply == 0) {
@@ -744,7 +738,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
-        require(src != dst, mToken_TransferNotValid());
+        require(src != dst, mt_TransferNotValid());
 
         /* Get the allowance, infinite for the account owner */
         uint256 startingAllowance = 0;

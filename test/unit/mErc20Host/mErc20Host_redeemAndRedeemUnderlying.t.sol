@@ -9,6 +9,8 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
+import {CommonLib} from "src/libraries/CommonLib.sol";
+
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
@@ -63,9 +65,9 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWethHost))
     {
-        vm.expectRevert(mTokenStorage.mToken_RedeemEmpty.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
         mWethHost.redeem(0);
-        vm.expectRevert(mTokenStorage.mToken_RedeemEmpty.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
         mWethHost.redeemUnderlying(0);
     }
 
@@ -81,11 +83,11 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
-        // it should revert with mToken_RedeemCashNotAvailable
-        vm.expectRevert(mTokenStorage.mToken_RedeemCashNotAvailable.selector);
+        // it should revert with mt_RedeemCashNotAvailable
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWethHost.redeem(amount);
 
-        vm.expectRevert(mTokenStorage.mToken_RedeemCashNotAvailable.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWethHost.redeemUnderlying(amount);
     }
 
@@ -159,8 +161,8 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
     }
 
     function test_GivenDecodedLiquidityIs0() external whenWithdrawOnExtensionIsCalled {
-        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.withdrawOnExtension(0, 1);
+        vm.expectRevert(CommonLib.AmountNotValid.selector);
+        mWethHost.performExtensionCall(1, 0, 1);
     }
 
     function test_RevertWhen_LiquiditySealVerificationFails(uint256 amount)
@@ -172,7 +174,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.withdrawOnExtension(amount, 1);
+        mWethHost.performExtensionCall(1, amount, 1);
     }
 
     function test_WhenLiquiditySealVerificationWasOk(uint256 amount)
@@ -192,7 +194,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
         mWethHost.updateAllowedChain(1, true);
-        mWethHost.withdrawOnExtension(amount, 1);
+        mWethHost.performExtensionCall(1, amount, 1);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();

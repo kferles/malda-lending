@@ -12,7 +12,7 @@ mErc20_redeem.t.sol
 │   └── it should not redeem anything
 └── given amount is greater than 0
     ├── when the market does not have enough assets for the redeem operations
-    │   └── it should revert with mToken_RedeemCashNotAvailable
+    │   └── it should revert with mt_RedeemCashNotAvailable
     ├── when state is valid for redeem
     │   ├── it should transfer underlying to redeemer
     │   ├── it should decrease totalSupply of mToken

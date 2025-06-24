@@ -58,7 +58,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWeth))
     {
-        // it should revert with mToken_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
+        // it should revert with mt_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
         // cannot test this in a non-external flow
         vm.expectRevert();
         mWeth.borrow(amount);

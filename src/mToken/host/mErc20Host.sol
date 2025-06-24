@@ -38,15 +38,13 @@ import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {IOperatorDefender} from "src/interfaces/IOperator.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
+import {IGasFeesHelper} from "src/interfaces/IGasFeesHelper.sol";
+import {CommonLib} from "src/libraries/CommonLib.sol";
 
 import {Migrator} from "src/migration/Migrator.sol";
 
 contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
-
-    // Add flash mint callback success constant
-    bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = 
-        bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
 
     // Add migrator address
     address public migrator;
@@ -58,12 +56,16 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     // ----------- STORAGE ------------
-    mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
-    mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
+    struct Accumulated {
+        mapping(address => uint256) inPerChain;
+        mapping(address => uint256) outPerChain;
+    }
+    mapping(uint32 => Accumulated) internal acc;
+
     mapping(address => mapping(address => bool)) public allowedCallers;
     mapping(uint32 => bool) public allowedChains;
-    mapping(uint32 => uint256) public gasFees;
     IZkVerifier public verifier;
+    IGasFeesHelper public gasHelper;
 
     /**
      * @notice Initializes the new money market
@@ -93,7 +95,6 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         _proxyInitialize(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
-        require(zkVerifier_ != address(0), mErc20Host_AddressNotValid());
 
         verifier = IZkVerifier(zkVerifier_);
 
@@ -107,15 +108,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @inheritdoc ImErc20Host
      */
-    function isCallerAllowed(address sender, address caller) external view returns (bool) {
-        return allowedCallers[sender][caller];
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
     function getProofData(address user, uint32 dstId) external view returns (uint256, uint256) {
-        return (accAmountInPerChain[dstId][user], accAmountOutPerChain[dstId][user]);
+        return (acc[dstId].inPerChain[user], acc[dstId].outPerChain[user]);
     }
 
     // ----------- OWNER ------------
@@ -125,9 +119,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
      * @param _status the new status
      */
     function updateAllowedChain(uint32 _chainId, bool _status) external {
-        if (msg.sender != admin && !_isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
-            revert mErc20Host_CallerNotAllowed();
-        }
+        _onlyAdminOrRole(_getChainsManagerRole());
+
         allowedChains[_chainId] = _status;
         emit mErc20Host_ChainStatusUpdated(_chainId, _status);
     }
@@ -150,15 +143,14 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
         migrator = _migrator;
     }
-
+    
     /**
-     * @notice Sets the gas fee
-     * @param dstChainId the destination chain id
-     * @param amount the gas fee amount
+     * @notice Sets the gas fees helper address
+     * @param _helper The new helper address
      */
-    function setGasFee(uint32 dstChainId, uint256 amount) external onlyAdmin {
-        gasFees[dstChainId] = amount;
-        emit mErc20Host_GasFeeUpdated(dstChainId, amount);
+    function setGasHelper(address _helper) external onlyAdmin {
+        require(_helper != address(0), mErc20Host_AddressNotValid());
+        gasHelper = IGasFeesHelper(_helper);
     }
 
     /**
@@ -166,9 +158,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
      * @param receiver the receiver address
      */
     function withdrawGasFees(address payable receiver) external {
-        if (msg.sender != admin && !_isAllowedFor(msg.sender, _getSequencerRole())) {
-            revert mErc20Host_CallerNotAllowed();
-        }
+        _onlyAdminOrRole(_getSequencerRole());
+           
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -208,11 +199,11 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             _verifyProof(journalData, seal);
         }
 
-        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes[] memory journals = _decodeJournals(journalData);
         uint256 length = journals.length;
-        require(length == liquidateAmount.length, mErc20Host_LengthMismatch());
-        require(length == userToLiquidate.length, mErc20Host_LengthMismatch());
-        require(length == collateral.length, mErc20Host_LengthMismatch());
+        CommonLib.checkLengthMatch(length, liquidateAmount.length);
+        CommonLib.checkLengthMatch(length, userToLiquidate.length);
+        CommonLib.checkLengthMatch(length, collateral.length);
 
         for (uint256 i; i < length;) {
             _liquidateExternal(journals[i], userToLiquidate[i], liquidateAmount[i], collateral[i], receiver);
@@ -236,11 +227,11 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             _verifyProof(journalData, seal);
         }
 
-        _checkOutflow(_computeTotalOutflowAmount(mintAmount));
+        _checkOutflow(CommonLib.computeSum(mintAmount));
 
-        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes[] memory journals = _decodeJournals(journalData);
         uint256 length = journals.length;
-        require(length == mintAmount.length, mErc20Host_LengthMismatch());
+        CommonLib.checkLengthMatch(length, mintAmount.length);
 
         for (uint256 i; i < length;) {
             _mintExternal(journals[i], mintAmount[i], minAmountsOut[i], receiver);
@@ -263,11 +254,11 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             _verifyProof(journalData, seal);
         }
 
-        _checkOutflow(_computeTotalOutflowAmount(repayAmount));
+        _checkOutflow(CommonLib.computeSum(repayAmount));
 
-        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes[] memory journals = _decodeJournals(journalData);
         uint256 length = journals.length;
-        require(length == repayAmount.length, mErc20Host_LengthMismatch());
+        CommonLib.checkLengthMatch(length, repayAmount.length);
 
         for (uint256 i; i < length;) {
             _repayExternal(journals[i], repayAmount[i], receiver);
@@ -279,93 +270,105 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
 
     /**
      * @inheritdoc ImErc20Host
-     * @dev amount represents the number of mTokens to redeem
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override {
-        require(amount > 0, mErc20Host_AmountNotValid());
-        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
-        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
-
+    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable override {
+        //actionType:
+        // 1 - withdraw
+        // 2 - borrow
+        CommonLib.checkHostToExtension(amount, dstChainId, msg.value, allowedChains, gasHelper);
         _checkOutflow(amount);
 
-        // actions
-        uint256 underlyingAmount = _redeem(msg.sender, amount, false);
-        accAmountOutPerChain[dstChainId][msg.sender] += underlyingAmount;
-
-        emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, underlyingAmount);
+        uint256 _amount = amount;
+        if (actionType == 1) {
+            _amount = _redeem(msg.sender, amount, false);
+            emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, _amount);
+        } else if (actionType == 2) {
+            _borrow(msg.sender, amount, false);
+            emit mErc20Host_BorrowOnExtensionChain(msg.sender, dstChainId, _amount);
+        } else {
+            revert mErc20Host_ActionNotAvailable();
+        }
+        acc[dstChainId].outPerChain[msg.sender] += _amount;
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override {
+    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount) external onlyMigrator {
         require(amount > 0, mErc20Host_AmountNotValid());
-        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
-        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
 
-        _checkOutflow(amount);
-
-        // actions
-        accAmountOutPerChain[dstChainId][msg.sender] += amount;
-        _borrow(msg.sender, amount, false);
-
-        emit mErc20Host_BorrowOnExtensionChain(msg.sender, dstChainId, amount);
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    function mintMigration(uint256 amount, uint256 minAmount, address receiver) external onlyMigrator {
-        require(amount > 0, mErc20Host_AmountNotValid());
-        _mint(receiver, receiver, amount, minAmount, false);
-        emit mErc20Host_MintMigration(receiver, amount);
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    function borrowMigration(uint256 amount, address borrower, address receiver) external onlyMigrator {
-        require(amount > 0, mErc20Host_AmountNotValid());
-        _borrowWithReceiver(borrower, receiver, amount);
-        emit mErc20Host_BorrowMigration(borrower, amount);
+        if (mint) {
+            _mint(receiver, receiver, amount, minAmount, false);
+            emit mErc20Host_MintMigration(receiver, amount);
+        } else {
+            _borrowWithReceiver(borrower, receiver, amount);
+            emit mErc20Host_BorrowMigration(borrower, amount);
+        }
     }
 
     // ----------- PRIVATE ------------
-    function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256) {
-        uint256 sum;
-        uint256 length = amounts.length;
-        for (uint256 i; i< length;) {
-            sum += amounts[i];
-            unchecked { ++i; }
+    function _onlyAdminOrRole(bytes32 _role) internal view {
+        if (msg.sender != admin && !_isAllowedFor(msg.sender, _role)) {
+            revert mErc20Host_CallerNotAllowed();
         }
-        return sum;
     }
 
-    function _checkOutflow(uint256 amount) private {
+    function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory) {
+        return abi.decode(data, (bytes[]));
+    }
+
+    function _checkOutflow(uint256 amount) internal {
         IOperatorDefender(operator).checkOutflowVolumeLimit(amount);
     }
 
-    function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
-        return rolesOperator.isAllowedFor(_sender, role);
+    function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view {
+        _checkSender(msg.sender, sender);
+        require(dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
+        require(market == address(this), mErc20Host_AddressNotValid());
+        require(allowedChains[chainId], mErc20Host_ChainNotValid());
     }
 
-    function _getProofForwarderRole() private view returns (bytes32) {
+    function _checkSender(address msgSender, address srcSender) internal view {
+        if (msgSender != srcSender) {
+            require(
+                allowedCallers[srcSender][msgSender] || msgSender == admin
+                    || _isAllowedFor(msgSender, _getProofForwarderRole())
+                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
+                mErc20Host_CallerNotAllowed()
+            );
+        }
+    }
+
+    function _getGasFees(uint32 dstChain) internal view returns (uint256) {
+        if (address(gasHelper) == address(0)) return 0;
+        return gasHelper.gasFees(dstChain);
+    }
+
+    function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool) {
+        return rolesOperator.isAllowedFor(_sender, role);
+    }
+    
+    function _getChainsManagerRole() internal view returns (bytes32) {
+        return rolesOperator.CHAINS_MANAGER();
+    }
+
+    function _getProofForwarderRole() internal view returns (bytes32) {
         return rolesOperator.PROOF_FORWARDER();
     }
 
-    function _getBatchProofForwarderRole() private view returns (bytes32) {
+    function _getBatchProofForwarderRole() internal view returns (bytes32) {
         return rolesOperator.PROOF_BATCH_FORWARDER();
     }
 
-    function _getSequencerRole() private view returns (bytes32) {
+    function _getSequencerRole() internal view returns (bytes32) {
         return rolesOperator.SEQUENCER();
     }
 
-    function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
         // Decode the dynamic array of journals.
-        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes[] memory journals = _decodeJournals(journalData);
 
         // Check the L1Inclusion flag for each journal.
         bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
@@ -384,16 +387,6 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         verifier.verifyInput(journalData, seal);
     }
 
-    function _checkSender(address msgSender, address srcSender) private view {
-        if (msgSender != srcSender) {
-            require(
-                allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || _isAllowedFor(msgSender, _getProofForwarderRole())
-                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
-                mErc20Host_CallerNotAllowed()
-            );
-        }
-    }
 
     function _liquidateExternal(
         bytes memory singleJournal,
@@ -409,22 +402,18 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         receiver = _sender;
 
         // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
-        }
+        _checkProofCall(_dstChainId, _chainId, _market, _sender);
+
         // operation checks
         {
             require(liquidateAmount > 0, mErc20Host_AmountNotValid());
-            require(liquidateAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(liquidateAmount <= _accAmountIn - acc[_chainId].inPerChain[_sender], mErc20Host_AmountTooBig());
             require(userToLiquidate != msg.sender && userToLiquidate != _sender, mErc20Host_CallerNotAllowed());
         }
         collateral = collateral == address(0) ? address(this) : collateral;
 
         // actions
-        accAmountInPerChain[_chainId][_sender] += liquidateAmount;
+        acc[_chainId].inPerChain[_sender] += liquidateAmount;
         _liquidate(receiver, userToLiquidate, liquidateAmount, collateral, false);
 
         emit mErc20Host_LiquidateExternal(
@@ -442,20 +431,16 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         receiver = _sender;
 
         // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
-        }
+        _checkProofCall(_dstChainId, _chainId, _market, _sender);
+
         // operation checks
         {
             require(mintAmount > 0, mErc20Host_AmountNotValid());
-            require(mintAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(mintAmount <= _accAmountIn - acc[_chainId].inPerChain[_sender], mErc20Host_AmountTooBig());
         }
 
         // actions
-        accAmountInPerChain[_chainId][_sender] += mintAmount;
+        acc[_chainId].inPerChain[_sender] += mintAmount;
         _mint(receiver, receiver, mintAmount, minAmountOut, false);
 
         emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
@@ -469,25 +454,20 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         receiver = _sender;
 
         // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
-            require(repayAmount > 0, mErc20Host_AmountNotValid());
-        }
+        _checkProofCall(_dstChainId, _chainId, _market, _sender);
 
         uint256 actualRepayAmount = _repayBehalf(receiver, repayAmount, false);
 
         // operation checks
         {
+            require(repayAmount > 0, mErc20Host_AmountNotValid());
             require(
-                actualRepayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig()
+                actualRepayAmount <= _accAmountIn - acc[_chainId].inPerChain[_sender], mErc20Host_AmountTooBig()
             );
         }
 
         // actions
-        accAmountInPerChain[_chainId][_sender] += actualRepayAmount;
+        acc[_chainId].inPerChain[_sender] += actualRepayAmount;
 
         emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, actualRepayAmount);
     }

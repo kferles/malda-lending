@@ -155,12 +155,12 @@ interface ImErc20Host {
      */
     error mErc20Host_L1InclusionRequired();
 
-    // ----------- VIEW -----------
     /**
-     * @notice Returns if a caller is allowed for sender
+     * @notice Thrown when extension action is not valid
      */
-    function isCallerAllowed(address sender, address caller) external view returns (bool);
+    error mErc20Host_ActionNotAvailable();
 
+    // ----------- VIEW -----------
     /**
      * @notice Returns the proof data journal
      */
@@ -169,18 +169,13 @@ interface ImErc20Host {
     // ----------- PUBLIC -----------
     /**
      * @notice Mints mTokens during migration without requiring underlying transfer
+     * @param mint Mint or borrow
      * @param amount The amount of underlying to be accounted for
-     * @param minAmount The min amount of underlying to be accounted for
-     * @param receiver The address that will receive the mTokens
-     */
-    function mintMigration(uint256 amount, uint256 minAmount, address receiver) external;
-
-    /**
-     * @notice Borrows from market for a specific borrower and not `msg.sender`
-     * @param amount The amount of underlying to be accounted for
+     * @param receiver The address that will receive the mTokens or the underlying in case of borrowing
      * @param borrower The address that borrow is executed for
+     * @param minAmount The min amount of underlying to be accounted for
      */
-    function borrowMigration(uint256 amount, address borrower, address receiver) external;
+    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount) external;
 
     /**
      * @notice Extract amount to be used for rebalancing operation
@@ -245,15 +240,9 @@ interface ImErc20Host {
 
     /**
      * @notice Initiates a withdraw operation
+     * @param actionType The actionType param (1 - withdraw, 2 - borrow)
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable;
-
-    /**
-     * @notice Initiates a withdraw operation
-     * @param amount The amount to withdraw
-     * @param dstChainId The destination chain to recieve funds
-     */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable;
+    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable;
 }

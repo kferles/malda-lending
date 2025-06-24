@@ -63,7 +63,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
-        // it should revert with mToken_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
+        // it should revert with mt_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
         // cannot test this in a non-external flow
         vm.expectRevert();
         mWethHost.borrow(amount);
@@ -232,7 +232,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
         mWethHost.updateAllowedChain(1, true);
-        mWethHost.borrowOnExtension(amount, 1);
+        mWethHost.performExtensionCall(2, amount, 1);
 
         {
             uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
