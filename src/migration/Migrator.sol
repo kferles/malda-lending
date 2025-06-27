@@ -31,7 +31,7 @@ contract Migrator {
     mapping(address => bool) public allowedMarkets;
 
     address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103;
-    address public constant MALDA_OPERATOR = 0x05bD298c0C3F34B541B42F867BAF6707911BE437;
+    address public immutable MALDA_OPERATOR;
 
     struct Position {
         address mendiMarket;
@@ -40,7 +40,8 @@ contract Migrator {
         uint256 borrowAmount;
     }
 
-    constructor() {
+    constructor(address _operator) {
+        MALDA_OPERATOR = _operator;
         allowedMarkets[0x269C36A173D881720544Fb303E681370158FF1FD] = true;
         allowedMarkets[0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f] = true;
         allowedMarkets[0xDF0635c1eCfdF08146150691a97e2Ff6a8Aa1a90] = true;

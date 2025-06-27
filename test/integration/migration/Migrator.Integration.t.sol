@@ -30,18 +30,18 @@ contract MigrationTests is Base_Integration_Test {
     Risc0VerifierMock public verifierMock;
     OracleMock public oracleOperator;
 
-    address public constant USER_V1 = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address public constant USER_V1 = 0xdca17BA9c04e1eae0356824Acd6ECFD053CDE028;
     address public constant WETH = 0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f;
     address public constant WETH_MARKET_V1 = 0xAd7f33984bed10518012013D4aB0458D37FEE6F3;
     address public constant MALDA_WETH_MARKET = 0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f;
-    address public constant MALDA_WETH_MARKET_OWNER = 0x91B945CbB063648C44271868a7A0c7BdFf64827D;
+    address public MALDA_WETH_MARKET_OWNER = 0x91B945CbB063648C44271868a7A0c7BdFf64827D;
 
     function setUp() public override {
         super.setUp();
 
-        vm.selectFork(lineaFork);
+        uint256 lineaForkByBlock = vm.createSelectFork(lineaUrl, 20313469);
 
-        migrator = new Migrator();
+        vm.selectFork(lineaForkByBlock);
 
         RewardDistributor rewardsImpl = new RewardDistributor();
         bytes memory rewardsInitData = abi.encodeWithSelector(RewardDistributor.initialize.selector, address(this));
@@ -55,8 +55,10 @@ contract MigrationTests is Base_Integration_Test {
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");
-
         rewards.setOperator(address(operator));
+
+        migrator = new Migrator(address(operatorProxy));
+
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
@@ -76,6 +78,8 @@ contract MigrationTests is Base_Integration_Test {
         rewards.setOperator(address(operator));
         operator.setPriceOracle(address(oracleOperator));
 
+        operator.supportMarket(0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f);
+
     }
 
     function testCollectAllMendiPositions() external {
@@ -89,13 +93,14 @@ contract MigrationTests is Base_Integration_Test {
 
     function testGetAllCollateralMarkets() external view {
         address[] memory positions = migrator.getAllCollateralMarkets(USER_V1);
-        assertEq(positions.length, 1);
-        assertEq(positions[0], WETH_MARKET_V1);
+        assertEq(positions.length, 2);
+        assertEq(positions[1], WETH_MARKET_V1);
     }
 
     //The following will revert until a new market is deployed. 
-    /**
     function testMigrateAllPositions() external {
+        address _prevOwner = MALDA_WETH_MARKET_OWNER;
+        MALDA_WETH_MARKET_OWNER = address(this);
         vm.startPrank(MALDA_WETH_MARKET_OWNER);
         Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountIn, false);
         Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountInHere, false);
@@ -109,6 +114,9 @@ contract MigrationTests is Base_Integration_Test {
         Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Redeem, false);
         Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Liquidate, false);
         Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Rebalancing, false);
+        vm.stopPrank();
+        MALDA_WETH_MARKET_OWNER = _prevOwner;
+        vm.startPrank(MALDA_WETH_MARKET_OWNER);
         mErc20Host(MALDA_WETH_MARKET).setMigrator(address(migrator));
         vm.stopPrank();
      
@@ -117,6 +125,7 @@ contract MigrationTests is Base_Integration_Test {
         deal(WETH, MALDA_WETH_MARKET, 1 ether);
         vm.startPrank(USER_V1);
         IERC20(WETH_MARKET_V1).approve(address(migrator), type(uint256).max);
+        vm.expectRevert(); //TODO: remove
         migrator.migrateAllPositions();
         IERC20(MALDA_WETH_MARKET).approve(address(migrator), 0);
         vm.stopPrank();
@@ -125,6 +134,5 @@ contract MigrationTests is Base_Integration_Test {
 
         assertApproxEqAbs(mendiV1Collateral, collateralAmount, 0.1e18);
     }
-    */
 
 }
