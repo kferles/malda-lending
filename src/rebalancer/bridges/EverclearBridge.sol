@@ -27,7 +27,6 @@ import {BytesLib} from "src/libraries/BytesLib.sol";
 
 import {IBridge} from "src/interfaces/IBridge.sol";
 import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
-import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
