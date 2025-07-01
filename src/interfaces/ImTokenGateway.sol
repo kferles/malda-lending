@@ -184,11 +184,6 @@ interface ImTokenGateway {
     function accAmountOut(address user) external view returns (uint256);
 
     /**
-     * @notice Returns if a caller is allowed for sender
-     */
-    function isCallerAllowed(address sender, address caller) external view returns (bool);
-
-    /**
      * @notice Returns the proof data journal
      */
     function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);

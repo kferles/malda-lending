@@ -82,11 +82,6 @@ interface ImTokenMinimal {
     function balanceOf(address account) external view returns (uint256);
 
     /**
-     * @dev Returns true
-     */
-    function isMToken() external view returns (bool);
-
-    /**
      * @dev Returns the underlying address
      */
     function underlying() external view returns (address);
@@ -143,11 +138,6 @@ interface ImToken is ImTokenMinimal {
      * @notice Total amount of reserves of the underlying held in this market
      */
     function totalReserves() external view returns (uint256);
-
-    /**
-     * @notice Returns true/false for same chain flow state disable status
-     */
-    function sameChainFlowStateDisabled() external view returns (bool);
 
     // ----------- ACTIONS ------------
     /**

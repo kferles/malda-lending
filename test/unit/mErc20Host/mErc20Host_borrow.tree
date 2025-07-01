@@ -7,7 +7,7 @@ mErc20Host_borrow.t.sol
 │   └── it should revert
 └── given amount is greater than 0
     ├── when there is not enough supply
-    │   └── it should revert with mToken_BorrowCashNotAvailable
+    │   └── it should revert with mt_BorrowCashNotAvailable
     ├── when borrow cap is reached
     │   └── it should revert with Operator_MarketBorrowCapReached
     ├── when borrow too much

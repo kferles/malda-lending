@@ -124,18 +124,6 @@ interface IOperatorDefender {
      * @param amount New amount
      */
     function checkOutflowVolumeLimit(uint256 amount) external;
-
-    /**
-     * @notice Checks whitelist status on withdrawOnExtension
-     * @param user The user to check
-     */
-    function beforeWithdrawOnExtension(address user) external view;
-
-    /**
-     * @notice Checks whitelist status on borrowOnExtension
-     * @param user The user to check
-     */
-    function beforeBorrowOnExtension(address user) external view;
 }
 
 interface IOperator {

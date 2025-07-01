@@ -75,82 +75,63 @@ abstract contract mErc20 is mToken, ImErc20 {
         ImTokenMinimal(underlying).totalSupply();
     }
 
-    modifier checkSameChainAllowed() {
-        if (sameChainFlowStateDisabled) revert mToken_SameChainOperationsAreDisabled();
-        _;
-    } 
-
     // ----------- OWNER ------------
-    /**
-     * @notice Admin call to delegate the votes of the MALDA-like underlying
-     * @param delegatee The address to delegate votes to
-     * @dev mTokens whose underlying are not  should revert here
-     */
-    function delegateMaldaLikeTo(address delegatee) external onlyAdmin {
-        ImTokenDelegator(underlying).delegate(delegatee);
-    }
-
     /**
      * @notice A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
      * @param token The address of the ERC-20 token to sweep
      */
-    function sweepToken(IERC20 token) external onlyAdmin {
+    function sweepToken(IERC20 token, uint256 amount) external onlyAdmin {
         require(address(token) != underlying, mErc20_TokenNotValid());
-
-        uint256 underlyingBefore = IERC20(underlying).balanceOf(address(this));
-        uint256 balance = token.balanceOf(address(this));
-        token.safeTransfer(admin, balance);
-        uint256 underlyingAfter = IERC20(underlying).balanceOf(address(this));
-        require(underlyingBefore == underlyingAfter, mToken_TransferNotValid());
+        token.safeTransfer(admin, amount);
     }
 
     // ----------- MARKET PUBLIC ------------
     /**
      * @inheritdoc ImErc20
      */
-    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external checkSameChainAllowed {
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
         _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function redeem(uint256 redeemTokens) external checkSameChainAllowed {
+    function redeem(uint256 redeemTokens) external {
         _redeem(msg.sender, redeemTokens, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function redeemUnderlying(uint256 redeemAmount) external checkSameChainAllowed {
+    function redeemUnderlying(uint256 redeemAmount) external {
         _redeemUnderlying(msg.sender, redeemAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function borrow(uint256 borrowAmount) external checkSameChainAllowed {
+    function borrow(uint256 borrowAmount) external {
         _borrow(msg.sender, borrowAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function repay(uint256 repayAmount) external checkSameChainAllowed returns (uint256) {
+    function repay(uint256 repayAmount) external returns (uint256) {
         return _repay(repayAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function repayBehalf(address borrower, uint256 repayAmount) external checkSameChainAllowed returns (uint256) {
+    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
         return _repayBehalf(borrower, repayAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external checkSameChainAllowed {
+    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
         _liquidate(msg.sender, borrower, repayAmount, mTokenCollateral, true);
     }
 

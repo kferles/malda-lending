@@ -57,9 +57,9 @@ contract mErc20_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
     {
-        vm.expectRevert(mTokenStorage.mToken_RedeemEmpty.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
         mWeth.redeem(0);
-        vm.expectRevert(mTokenStorage.mToken_RedeemEmpty.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
         mWeth.redeemUnderlying(0);
     }
 
@@ -75,11 +75,11 @@ contract mErc20_redeem is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
-        // it should revert with mToken_RedeemCashNotAvailable
-        vm.expectRevert(mTokenStorage.mToken_RedeemCashNotAvailable.selector);
+        // it should revert with mt_RedeemCashNotAvailable
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWeth.redeem(amount);
 
-        vm.expectRevert(mTokenStorage.mToken_RedeemCashNotAvailable.selector);
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWeth.redeemUnderlying(amount);
     }
 

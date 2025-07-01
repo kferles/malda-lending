@@ -105,30 +105,6 @@ contract mErc20_mint is mToken_Unit_Shared {
         assertEq(totalSupplyAfter - SMALL, totalSupplyBefore);
     }
 
-    function test_WhenSupplyCapIsGreater_ButSameChainIsDisabled(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMarketIsListed(address(mWeth))
-    {
-        _getTokens(weth, address(this), amount);
-        weth.approve(address(mWeth), amount);
-
-        bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
-        assertFalse(enteredBefore);
-
-        mWeth.mint(amount, address(this), amount);
-
-        bool enteredAfter = operator.checkMembership(address(this), address(mWeth));
-        assertTrue(enteredAfter);
-
-        // now disable same chain operations
-        mWeth.setSameChainFlowState(true); //disabled
-
-        vm.expectRevert(mTokenStorage.mToken_SameChainOperationsAreDisabled.selector);
-        mWeth.mint(amount, address(this), amount);
-    }
-
-    
     function test_WhenSupplyCapIsGreater_ButWhitelistEnabled(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)

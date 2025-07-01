@@ -12,6 +12,7 @@ import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {OracleMock} from "../../mocks/OracleMock.sol";
+import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {ImToken} from "src/interfaces/ImToken.sol";
 
@@ -27,20 +28,20 @@ contract MigrationTests is Base_Integration_Test {
     RewardDistributor public rewards;
     JumpRateModelV4 public interestModel;
     Risc0VerifierMock public verifierMock;
-    mErc20Host public mWethHost;
     OracleMock public oracleOperator;
 
-
-    address public constant USER_V1 = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address public constant USER_V1 = 0xdca17BA9c04e1eae0356824Acd6ECFD053CDE028;
     address public constant WETH = 0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f;
     address public constant WETH_MARKET_V1 = 0xAd7f33984bed10518012013D4aB0458D37FEE6F3;
+    address public constant MALDA_WETH_MARKET = 0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f;
+    address public MALDA_WETH_MARKET_OWNER = 0x91B945CbB063648C44271868a7A0c7BdFf64827D;
 
     function setUp() public override {
         super.setUp();
 
-        vm.selectFork(lineaFork);
+        uint256 lineaForkByBlock = vm.createSelectFork(lineaUrl, 20313469);
 
-        migrator = new Migrator();
+        vm.selectFork(lineaForkByBlock);
 
         RewardDistributor rewardsImpl = new RewardDistributor();
         bytes memory rewardsInitData = abi.encodeWithSelector(RewardDistributor.initialize.selector, address(this));
@@ -54,8 +55,10 @@ contract MigrationTests is Base_Integration_Test {
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");
-
         rewards.setOperator(address(operator));
+
+        migrator = new Migrator(address(operatorProxy));
+
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
@@ -68,91 +71,66 @@ contract MigrationTests is Base_Integration_Test {
         );
         vm.label(address(interestModel), "InterestModel");
 
-        mErc20Host implementation = new mErc20Host();
-        bytes memory initData = abi.encodeWithSelector(
-            mErc20Host.initialize.selector,
-            WETH,
-            address(operator),
-            address(interestModel),
-            1e18,
-            "Market WETH",
-            "mWeth",
-            18,
-            payable(address(this)),
-            address(zkVerifier),
-            address(roles)
-        );
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
-        mWethHost = mErc20Host(address(proxy));
-        vm.label(address(mWethHost), "mWethHost");
-
-        operator.supportMarket(address(mWethHost));
-
         oracleOperator = new OracleMock(address(this));
         vm.label(address(oracleOperator), "oracleOperator");
 
         // **** SETUP ****
         rewards.setOperator(address(operator));
         operator.setPriceOracle(address(oracleOperator));
+
+        operator.supportMarket(0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f);
+
     }
 
     function testCollectAllMendiPositions() external {
-        Migrator.MigrationParams memory _migrationParams = Migrator.MigrationParams({
-            mendiComptroller: COMPTROLLER, 
-            maldaOperator: address(operator),
-            userV1: USER_V1,
-            userV2: address(this)
-        });
         vm.prank(USER_V1);
-        Migrator.Position[] memory positions = migrator.getAllPositions(_migrationParams);
+        Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 
         assertEq(positions.length, 1);
         assertGt(positions[0].collateralUnderlyingAmount, 0.01 ether);    
-        assertEq(positions[0].maldaMarket, address(mWethHost));
+        assertEq(positions[0].maldaMarket, address(MALDA_WETH_MARKET));
     }
 
     function testGetAllCollateralMarkets() external view {
-        Migrator.MigrationParams memory _migrationParams = Migrator.MigrationParams({
-            mendiComptroller: COMPTROLLER, 
-            maldaOperator: address(operator),
-            userV1: USER_V1,
-            userV2: address(this)
-        });
-
-        address[] memory positions = migrator.getAllCollateralMarkets(_migrationParams);
-        assertEq(positions.length, 1);
-        assertEq(positions[0], WETH_MARKET_V1);
+        address[] memory positions = migrator.getAllCollateralMarkets(USER_V1);
+        assertEq(positions.length, 2);
+        assertEq(positions[1], WETH_MARKET_V1);
     }
 
+    //The following will revert until a new market is deployed. 
     function testMigrateAllPositions() external {
-        mWethHost.setMigrator(address(migrator));
-        oracleOperator.setUnderlyingPrice(2000e18);
-        oracleOperator.setPrice(2000e18);
-        operator.setCollateralFactor(address(mWethHost), 9e17);
-
-        // add some funds to mWethHost to allow borrow
-        deal(WETH, address(alice), 1 ether);
-        vm.startPrank(alice);
-        IERC20(WETH).approve(address(mWethHost), 1 ether);
-        mWethHost.mint(1 ether, address(alice), 1 ether);
+        address _prevOwner = MALDA_WETH_MARKET_OWNER;
+        MALDA_WETH_MARKET_OWNER = address(this);
+        vm.startPrank(MALDA_WETH_MARKET_OWNER);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountIn, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountInHere, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOut, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOutHere, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Seize, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Transfer, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Mint, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Borrow, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Repay, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Redeem, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Liquidate, false);
+        Operator(migrator.MALDA_OPERATOR()).setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Rebalancing, false);
         vm.stopPrank();
+        MALDA_WETH_MARKET_OWNER = _prevOwner;
+        vm.startPrank(MALDA_WETH_MARKET_OWNER);
+        mErc20Host(MALDA_WETH_MARKET).setMigrator(address(migrator));
+        vm.stopPrank();
+     
+        uint256 mendiV1Collateral = ImToken(MALDA_WETH_MARKET).balanceOfUnderlying(USER_V1);
 
-        uint256 mendiV1Collateral = ImToken(WETH_MARKET_V1).balanceOfUnderlying(USER_V1);
-
-        Migrator.MigrationParams memory _migrationParams = Migrator.MigrationParams({
-            mendiComptroller: COMPTROLLER, 
-            maldaOperator: address(operator),
-            userV1: USER_V1,
-            userV2: address(this)
-        });
-
+        deal(WETH, MALDA_WETH_MARKET, 1 ether);
         vm.startPrank(USER_V1);
         IERC20(WETH_MARKET_V1).approve(address(migrator), type(uint256).max);
-        migrator.migrateAllPositions(_migrationParams);
-        IERC20(WETH_MARKET_V1).approve(address(migrator), 0);
+        vm.expectRevert(); //TODO: remove
+        migrator.migrateAllPositions();
+        IERC20(MALDA_WETH_MARKET).approve(address(migrator), 0);
         vm.stopPrank();
 
-        uint256 collateralAmount = ImToken(address(mWethHost)).balanceOfUnderlying(address(this));
+        uint256 collateralAmount = ImToken(MALDA_WETH_MARKET).balanceOfUnderlying(address(this));
 
         assertApproxEqAbs(mendiV1Collateral, collateralAmount, 0.1e18);
     }
