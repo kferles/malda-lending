@@ -2,9 +2,10 @@
 pragma solidity =0.8.28;
 
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
+import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 
-import "forge-std/console.sol";
+import "forge-std/console2.sol";
 
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
     function setUp() public override {
@@ -19,6 +20,45 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;
+    }
+
+    function test_evercleardecoding() pure external {
+        bytes memory data = hex"0000000000000000000000000000000000000000000000000000000000000140000000000000000000000000b819a871d20913839c37f316dc914b0570bfc0ee000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff850000000000000000000000000000000000000000000000000000000000072d0300000000000000000000000000000000000000000000000000000000000186a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008153d0000000000000000000000000000000000000000000000000000000068491f680000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000004131bf6ef2678c118d003bcb3dd871374010823884615ce870cedb264411c66d3e7b72daa0cb2a14169be0c8af08b5191f810eab370f3577c0aafc337b817a72c81b00000000000000000000000000000000000000000000000000000000000000";
+        
+        (
+            uint32[] memory _destinations,
+            bytes32 _receiver,
+            address _inputAsset,
+            bytes32 _outputAsset,
+            uint256 _amount,
+            uint24 _maxFee,
+            uint48 _ttl,
+            bytes memory _data,
+            IFeeAdapter.FeeParams memory _feeParams
+        ) = abi.decode(data, (
+                uint32[],
+                bytes32,
+                address,
+                bytes32,
+                uint256,
+                uint24,
+                uint48,
+                bytes,
+                IFeeAdapter.FeeParams
+            ));
+        
+        console2.log("---------------_destinations", uint256(_destinations[0]));
+        console2.log("---------------_destinations length", _destinations.length);
+        console2.log("---------------_receiver");
+        console2.logBytes32(_receiver);
+        console2.log("---------------_inputAsset", _inputAsset);
+        console2.log("---------------_outputAsset");
+        console2.logBytes32(_outputAsset);
+        console2.log("---------------_amount", _amount);
+        console2.log("---------------_maxFee", uint256(_maxFee));
+        console2.log("---------------_ttl", uint256(_ttl));
+        console2.log("---------------_feeParams.fee", _feeParams.fee);
+        console2.log("---------------_feeParams.deadline", _feeParams.deadline);
     }
 
     function test_WhenSetWhitelistedBridgeStatusIsCalledWithTrue() external givenSenderDoesNotHaveGUARDIAN_BRIDGERole {

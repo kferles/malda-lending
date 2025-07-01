@@ -23,29 +23,47 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
+import {BytesLib} from "src/libraries/BytesLib.sol";
 
 import {IBridge} from "src/interfaces/IBridge.sol";
-import {IEverclearSpoke} from "src/interfaces/external/everclear/IEverclearSpoke.sol";
+import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
 contract EverclearBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
+    using BytesLib for bytes;
 
     // ----------- STORAGE ------------
-    IEverclearSpoke public everclearSpoke;
+    IFeeAdapter public everclearFeeAdapter;
+
+    struct IntentParams {
+        uint32[] destinations;
+        bytes32 receiver;
+        address inputAsset;
+        bytes32 outputAsset;
+        uint256 amount;
+        uint24 maxFee;
+        uint48 ttl;
+        bytes data;
+        IFeeAdapter.FeeParams feeParams;
+    }
 
     // ----------- EVENTS ------------
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
+    event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
 
     // ----------- ERRORS ------------
+    error Everclear_TokenMismatch();
     error Everclear_NotImplemented();
     error Everclear_AddressNotValid();
+    error Everclear_DestinationNotValid();
+    error Everclear_DestinationsLengthMismatch();
 
-    constructor(address _roles, address _spoke) BaseBridge(_roles) {
-        require(_spoke != address(0), Everclear_AddressNotValid());
+    constructor(address _roles, address _feeAdapter) BaseBridge(_roles) {
+        require(_feeAdapter != address(0), Everclear_AddressNotValid());
 
-        everclearSpoke = IEverclearSpoke(_spoke);
+        everclearFeeAdapter = IFeeAdapter(_feeAdapter);
     }
 
     // ----------- VIEW ------------
@@ -58,29 +76,85 @@ contract EverclearBridge is BaseBridge, IBridge {
     }
 
     // ----------- EXTERNAL ------------
-    /**
-     * @inheritdoc IBridge
-     */
     function sendMsg(
         uint256 _extractedAmount,
         address _market,
         uint32 _dstChainId,
         address _token,
         bytes memory _message,
-        bytes memory
+        bytes memory // unused
     ) external payable onlyRebalancer {
-        // decode message & checks
-        (address outputAsset, uint256 amount, bytes memory data) = abi.decode(_message, (address, uint256, bytes));
-        require(_extractedAmount == amount, BaseBridge_AmountMismatch());
+        IntentParams memory params = _decodeIntent(_message);
 
-        // retrieve tokens from `Rebalancer`
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
+        require(params.inputAsset == _token, Everclear_TokenMismatch());
+        require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
 
-        // approve and send with Everclear
-        uint32[] memory destinations = new uint32[](1);
-        destinations[0] = _dstChainId;
-        SafeApprove.safeApprove(_token, address(everclearSpoke), amount);
-        (bytes32 _intentId,) = everclearSpoke.newIntent(destinations, _market, _token, outputAsset, amount, 0, 0, data);
-        emit MsgSent(_dstChainId, _market, amount, _intentId);
+        uint256 destinationsLength = params.destinations.length;
+        require(destinationsLength > 0, Everclear_DestinationsLengthMismatch());
+
+        bool found;
+        for (uint256 i; i < destinationsLength; ++i) {
+            if (params.destinations[i] == _dstChainId) {
+                found = true;
+                break;
+            }
+        }
+        require(found, Everclear_DestinationNotValid());
+
+        if (_extractedAmount > params.amount) {
+            uint256 toReturn = _extractedAmount - params.amount;
+            IERC20(_token).safeTransfer(_market, toReturn);
+            emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
+        }
+
+        SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount);
+        (bytes32 id,) = everclearFeeAdapter.newIntent(
+            params.destinations,
+            params.receiver,
+            params.inputAsset,
+            params.outputAsset,
+            params.amount,
+            params.maxFee,
+            params.ttl,
+            params.data,
+            params.feeParams
+        );
+        emit MsgSent(_dstChainId, _market, params.amount, id);
     }
+
+    // ----------- INTERNAL ------------
+    function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory) {
+        // message contains data obtained from `https://api.everclear.org/intents` call
+        // data can be decoded into `FeeAdapter.newIntent` call params
+
+        // skip selector        
+        bytes memory intentData = BytesLib.slice(message, 4, message.length - 4);
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint24 maxFee,
+            uint48 ttl,
+            bytes memory data,
+            IFeeAdapter.FeeParams memory feeParams
+        ) = abi.decode(
+            intentData,
+            (
+                uint32[],
+                bytes32,
+                address,
+                bytes32,
+                uint256,
+                uint24,
+                uint48,
+                bytes,
+                IFeeAdapter.FeeParams
+            )
+        );
+
+        return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
+    }
+
 }
