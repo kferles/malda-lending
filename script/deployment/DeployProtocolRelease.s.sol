@@ -703,7 +703,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         _setCollateralFactor(operator, market, collateralFactor);
         
         // Set reserve factor
-        //_setReserveFactor(market, reserveFactor);
+        _setReserveFactor(market, reserveFactor);
 
         // Set liquidation incentives
         _setLiquidationIncentive(operator, market, liquidationBonus);
