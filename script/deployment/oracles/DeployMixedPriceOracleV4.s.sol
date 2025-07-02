@@ -17,6 +17,30 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --broadcast
  */
 contract DeployMixedPriceOracleV4 is Script {
+    function runTestnet(Deployer deployer, address roles, uint256 stalenessPeriod) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+
+        string[] memory symbols = new string[](0);
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](0);
+      
+        bytes32 salt = getSalt("MixedPriceOracleV4V1.0.1");
+        address created = deployer.precompute(salt);
+        if (created.code.length > 0) {
+            console.log("MixedPriceOracleV4 already deployed at: %s", created);
+        } else {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt,
+                abi.encodePacked(
+                    type(MixedPriceOracleV4).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("MixedPriceOracleV4 deployed at: %s", created);
+        }
+
+        return created;
+    }
     //function runWithFeeds(Deployer deployer, OracleFeedV4[] memory feeds, address roles, uint256 stalenessPeriod)
     function run()
         public

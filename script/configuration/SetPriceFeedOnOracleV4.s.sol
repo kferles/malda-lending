@@ -15,6 +15,22 @@ import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
  *     --broadcast
  */
 contract SetPriceFeedOnOracleV4 is Script {
+    function runTestnet(address oracle, string memory symbol, address priceFeed, uint8 underlyingDecimals) public {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+         MixedPriceOracleV4.PriceConfig memory config = MixedPriceOracleV4.PriceConfig({
+            api3Feed: priceFeed,
+            eOracleFeed: priceFeed,
+            toSymbol: "USD",
+            underlyingDecimals: underlyingDecimals
+        });
+
+        console.log("Setting oracle feed for %s", symbol);
+        vm.startBroadcast(key);
+        MixedPriceOracleV4(oracle).setConfig(symbol, config);
+        vm.stopBroadcast();
+        console.log("Oracle feed set");
+    }
+    
     //function run(string memory symbol, address priceFeed, string memory toSymbol, uint8 underlyingDecimals) public {
     function run() public {
         string memory symbol = "mweETH";

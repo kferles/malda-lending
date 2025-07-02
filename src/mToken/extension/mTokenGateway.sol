@@ -60,7 +60,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     mapping(address => bool) public userWhitelisted;
     bool public whitelistEnabled;
 
-    uint32 private constant LINEA_CHAIN_ID = 59144;
+    uint32 private constant LINEA_CHAIN_ID = 59141; // TESTNET; TODO: change back to 59144
 
     ///@dev gas fee for `supplyOnHost`
     uint256 public gasFee;

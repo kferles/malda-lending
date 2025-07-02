@@ -23,74 +23,38 @@
       },
       "markets": [
         {
-          "borrowCap": 1000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 800000000000000000,
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 50000000000000,
+          "collateralFactor": 900000000000000000,
           "decimals": 6,
           "interestModel": {
-            "baseRate": 20000000000000000,
-            "blocksPerYear": 2102400,
-            "jumpMultiplier": 500000000000000000,
-            "kink": 800000000000000000,
-            "multiplier": 100000000000000000,
-            "name": "mUSDC Interest Model"
-          },
-          "name": "mUSDC",
-          "supplyCap": 1000000000000,
-          "symbol": "mUSDC",
-          "underlying": "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7"
-        },
-        {
-          "borrowCap": 1000000000000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 800000000000000000,
-          "decimals": 18,
-          "interestModel": {
-            "baseRate": 10000000000000000,
-            "blocksPerYear": 2102400,
-            "jumpMultiplier": 400000000000000000,
-            "kink": 900000000000000000,
-            "multiplier": 80000000000000000,
-            "name": "mWETH Interest Model"
-          },
-          "name": "mWETH",
-          "supplyCap": 1000000000000000000000,
-          "symbol": "mWETH",
-          "underlying": "0x06565ed324Ee9fb4DB0FF80B7eDbE4Cb007555a3"
-        },
-        {
-          "borrowCap": 1000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 800000000000000000,
-          "decimals": 6,
-          "interestModel": {
-            "baseRate": 20000000000000000,
-            "blocksPerYear": 2102400,
-            "jumpMultiplier": 500000000000000000,
-            "kink": 800000000000000000,
-            "multiplier": 100000000000000000,
+            "baseRate": 0,
+            "blocksPerYear": 31536000,
+            "jumpMultiplier": 11092659363,
+            "kink": 920000000000000000,
+            "multiplier": 1902587485,
             "name": "mUSDCMock Interest Model"
           },
           "name": "mUSDCMock",
-          "supplyCap": 1000000000000,
+          "supplyCap": 0,
           "symbol": "mUSDCMock",
           "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
         },
         {
-          "borrowCap": 1000000000000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 800000000000000000,
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 50000000000000,
+          "collateralFactor": 810000000000000000,
           "decimals": 18,
           "interestModel": {
-            "baseRate": 10000000000000000,
-            "blocksPerYear": 2102400,
-            "jumpMultiplier": 400000000000000000,
-            "kink": 900000000000000000,
-            "multiplier": 80000000000000000,
+            "baseRate": 0,
+            "blocksPerYear": 31536000,
+            "jumpMultiplier": 26953011055,
+            "kink": 700000000000000000,
+            "multiplier": 507413996,
             "name": "mwstETHMock Interest Model"
           },
           "name": "mwstETHMock",
-          "supplyCap": 1000000000000000000000,
+          "supplyCap": 0,
           "symbol": "mwstETHMock",
           "underlying": "0x0d7Ee0ee6E449e38269F2E089262b40cA4096594"
         }
@@ -176,44 +140,8 @@
       },
       "markets": [
         {
-          "borrowCap": 1000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
-          "decimals": 6,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": "mUSDC Interest Model"
-          },
-          "name": "mUSDC",
-          "supplyCap": 1000000000000,
-          "symbol": "mUSDC",
-          "underlying": "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
-        },
-        {
-          "borrowCap": 1000000000000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
-          "decimals": 18,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": "mWETH Interest Model"
-          },
-          "name": "mWETH",
-          "supplyCap": 1000000000000000000000,
-          "symbol": "mWETH",
-          "underlying": "0x4200000000000000000000000000000000000006"
-        },
-        {
-          "borrowCap": 1000000000000,
-          "borrowRateMaxMantissa": 400000000000,
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
           "collateralFactor": 0,
           "decimals": 6,
           "interestModel": {
@@ -225,13 +153,13 @@
             "name": "mUSDCMock Interest Model"
           },
           "name": "mUSDCMock",
-          "supplyCap": 1000000000000,
+          "supplyCap": 0,
           "symbol": "mUSDCMock",
           "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
         },
         {
-          "borrowCap": 1000000000000000000000,
-          "borrowRateMaxMantissa": 400000000000,
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
           "collateralFactor": 0,
           "decimals": 18,
           "interestModel": {
@@ -243,7 +171,7 @@
             "name": "mwstETHMock Interest Model"
           },
           "name": "mwstETHMock",
-          "supplyCap": 1000000000000000000000,
+          "supplyCap": 0,
           "symbol": "mwstETHMock",
           "underlying": "0x0d7Ee0ee6E449e38269F2E089262b40cA4096594"
         }
@@ -328,42 +256,6 @@
           "borrowCap": 0,
           "borrowRateMaxMantissa": 0,
           "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mUSDC",
-          "supplyCap": 0,
-          "symbol": "mUSDC",
-          "underlying": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mWETH",
-          "supplyCap": 0,
-          "symbol": "mWETH",
-          "underlying": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
-        },
-        {
-          "borrowCap": 1000000000000,
-          "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
           "decimals": 6,
           "interestModel": {
             "baseRate": 0,
@@ -374,13 +266,13 @@
             "name": "mUSDCMock Interest Model"
           },
           "name": "mUSDCMock",
-          "supplyCap": 1000000000000,
+          "supplyCap": 0,
           "symbol": "mUSDCMock",
           "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
         },
         {
-          "borrowCap": 1000000000000000000000,
-          "borrowRateMaxMantissa": 400000000000,
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
           "collateralFactor": 0,
           "decimals": 18,
           "interestModel": {
