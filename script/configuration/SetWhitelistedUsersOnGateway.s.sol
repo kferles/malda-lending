@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetWhitelistedUsersOnGateway is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         mTokenGateway market = mTokenGateway(0xcb4d153604a6F21Ff7625e5044E89C3b903599Bc);
 

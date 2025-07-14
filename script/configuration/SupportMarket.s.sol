@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SupportMarket is Script {
     function run(address operator, address market) public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Supporting market", market);
 

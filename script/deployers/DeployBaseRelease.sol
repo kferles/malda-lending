@@ -29,7 +29,7 @@ contract DeployBaseRelease is Script {
     OracleFeed[] internal feeds;
 
     function setUp() public virtual {
-        key = vm.envUint("OWNER_PRIVATE_KEY");
+        key = vm.envUint("PRIVATE_KEY");
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
         // parse generic config

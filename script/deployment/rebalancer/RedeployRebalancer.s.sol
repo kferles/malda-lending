@@ -23,7 +23,7 @@ contract RedeployRebalancer is Script {
         address saveAddress = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
         Deployer deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
 
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         bytes32 salt = getSalt("RebalancerV1.0.0");
 
         address created = deployer.precompute(salt);

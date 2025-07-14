@@ -27,7 +27,7 @@ contract TransferOwnership is Script {
 
 
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         //initialization
         address hyperNative = 0xF8B6314e66EA3e4b62e229fa5F5F052058618404;

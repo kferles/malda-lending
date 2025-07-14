@@ -30,9 +30,9 @@
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 11092659363,
+            "jumpMultiplier": 3499999999994448000,
             "kink": 920000000000000000,
-            "multiplier": 1902587485,
+            "multiplier": 50605736204435511,
             "name": "mUSDCMock Interest Model"
           },
           "name": "mUSDCMock",
@@ -48,9 +48,9 @@
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 26953011055,
-            "kink": 700000000000000000,
-            "multiplier": 507413996,
+            "jumpMultiplier": 8499924722164496000,
+            "kink": 800000000000000000,
+            "multiplier": 12799993755404800,
             "name": "mwstETHMock Interest Model"
           },
           "name": "mwstETHMock",

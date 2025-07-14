@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract UpdateAllowedChains is Script {
     function run(address market, uint32 chainId, bool isAllowed) public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Updating allowed chain for market %s", market);
 

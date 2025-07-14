@@ -15,7 +15,7 @@ contract DeployBase is Script {
     mapping(string => uint256) public forks;
 
     function setUp() public virtual {
-        key = vm.envUint("OWNER_PRIVATE_KEY");
+        key = vm.envUint("PRIVATE_KEY");
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
         for (uint256 i = 0; i < networks.length; i++) {

@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetSupplyCap is Script {
     function run(address operator, address market, uint256 cap) public {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         address[] memory mTokens = new address[](1);
         uint256[] memory caps = new uint256[](1);

@@ -6,7 +6,7 @@ import {DefaultGasHelper} from "src/oracles/gas/DefaultGasHelper.sol";
 
 contract SetGasFees is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         address gasHelper = address(0); // update when deployed
 

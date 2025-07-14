@@ -30,7 +30,7 @@ contract DeployDeployer is Script {
         // Deploy only if not already deployed
         if (deployerAddress.code.length == 0) {
             console.log("Deploying deployer. Nothing found on", deployerAddress);
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             deployerAddress = _deployCreate2(_salt, owner);
             vm.stopBroadcast();
             console.log("Deployer contract deployed at: %s", deployerAddress);

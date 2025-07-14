@@ -17,7 +17,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployRebalancer is Script {
     function run(address roles, address saveAddress, Deployer deployer) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         bytes32 salt = getSalt("RebalancerV1.0");
 
         address created = deployer.precompute(salt);

@@ -19,33 +19,33 @@ import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
     DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
-} from "../deployers/Types.sol";
+} from "../../deployers/Types.sol";
 
-import {DeployBaseRelease} from "../deployers/DeployBaseRelease.sol";
-import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
-import {DeployRbac} from "./generic/DeployRbac.s.sol";
-import {DeployZkVerifier} from "./generic/DeployZkVerifier.s.sol";
-import {DeployTimelockController} from "./generic/DeployTimelockController.s.sol";
-import {DeployPauser} from "./generic/DeployPauser.s.sol";
-import {DeployOperator} from "./markets/DeployOperator.s.sol";
-import {DeployHostMarket} from "./markets/host/DeployHostMarket.s.sol";
-import {DeployExtensionMarket} from "./markets/extension/DeployExtensionMarket.s.sol";
-import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
-import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
-import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
-import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
-import {DeployMockOracle} from "./oracles/DeployMockOracle.s.sol";
+import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
+import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
+import {DeployRbac} from "../generic/DeployRbac.s.sol";
+import {DeployZkVerifier} from "../generic/DeployZkVerifier.s.sol";
+import {DeployTimelockController} from "../generic/DeployTimelockController.s.sol";
+import {DeployPauser} from "../generic/DeployPauser.s.sol";
+import {DeployOperator} from "../markets/DeployOperator.s.sol";
+import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";
+import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.s.sol";
+import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
+import {DeployRewardDistributor} from "../rewards/DeployRewardDistributor.s.sol";
+import {DeployBatchSubmitter} from "../generic/DeployBatchSubmitter.s.sol";
+import {DeployMixedPriceOracleV3} from "../oracles/DeployMixedPriceOracleV3.s.sol";
+import {DeployMockOracle} from "../oracles/DeployMockOracle.s.sol";
 
-import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
-import {SetRole} from "../configuration/SetRole.s.sol";
-import {SetCollateralFactor} from "../configuration/SetCollateralFactor.s.sol";
-import {SetReserveFactor} from "../configuration/SetReserveFactor.s.sol";
-import {SetLiquidationBonus} from "../configuration/SetLiquidationBonus.s.sol";
-import {SupportMarket} from "../configuration/SupportMarket.s.sol";
-import {SetBorrowRateMaxMantissa} from "../configuration/SetBorrowRateMaxMantissa.s.sol";
-import {SetBorrowCap} from "../configuration/SetBorrowCap.s.sol";
-import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
-import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
+import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
+import {SetRole} from "../../configuration/SetRole.s.sol";
+import {SetCollateralFactor} from "../../configuration/SetCollateralFactor.s.sol";
+import {SetReserveFactor} from "../../configuration/SetReserveFactor.s.sol";
+import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol";
+import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
+import {SetBorrowRateMaxMantissa} from "../../configuration/SetBorrowRateMaxMantissa.s.sol";
+import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
+import {SetSupplyCap} from "../../configuration/SetSupplyCap.s.sol";
+import {UpdateAllowedChains} from "../../configuration/UpdateAllowedChains.s.sol";
 
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
@@ -430,7 +430,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
             // Transfer ownerhip
             // console.log("Transfer ownership to", configs[network].ownership);
-            // uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+            // uint256 key = vm.envUint("PRIVATE_KEY");
             // vm.startBroadcast(key);
 
             // console.log(" -- for ZkVerifier");
@@ -548,7 +548,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             market = fullConfigs[market.name];
             interestModel = _deployInterestModel(market.interestModel);
         }
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         // Deploy proxy for market
         if (isHost) {

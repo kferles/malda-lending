@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract UpdateAllAllowedChains is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         bool isAllowed = true;
 

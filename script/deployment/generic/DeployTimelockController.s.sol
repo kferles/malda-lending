@@ -13,7 +13,7 @@ contract DeployTimelockController is Script {
 
         address created = _deployer.precompute(salt);
         if (created.code.length == 0) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             //constructor(uint256 minDelay, address[] memory proposers, address[] memory executors, address admin) {
             uint256 minDelay = 3600;
             address[] memory data = new address[](1);

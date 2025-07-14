@@ -11,7 +11,7 @@ interface IEnable {
 }
 contract SetWhitelistDisabled is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         address[] memory markets = new address[](7);
         markets[0] = 0x269C36A173D881720544Fb303E681370158FF1FD;

@@ -260,7 +260,7 @@ contract DeployProtocolTestnet is DeployBaseRelease {
         if (isHost) {
             interestModel = _deployInterestModel(market.interestModel);
         }
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         // Deploy proxy for market
         if (isHost) {

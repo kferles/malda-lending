@@ -19,7 +19,7 @@ contract DeployConnextBridge is Script {
     function run(address roles, address connext, Deployer deployer) public returns (address) {
         bytes32 salt = getSalt("ConnextBridgeV1.0");
 
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         address created =
             deployer.create(salt, abi.encodePacked(type(ConnextBridge).creationCode, abi.encode(roles, connext)));
         vm.stopBroadcast();
