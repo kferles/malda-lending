@@ -61,7 +61,7 @@ contract DeployOperator is Script {
             vm.stopBroadcast();
             console.log("Oracle has been set");
         }
-      
+
         return operatorAddress;
     }
 

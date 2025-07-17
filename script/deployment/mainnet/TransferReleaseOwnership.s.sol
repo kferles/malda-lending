@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
@@ -11,7 +10,12 @@ import {Pauser} from "src/pauser/Pauser.sol";
 import {IOwnable} from "src/interfaces/IOwnable.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -41,7 +45,6 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
-
 
         string memory marketsOutputPath = "script/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
@@ -74,10 +77,8 @@ contract TransferReleaseOwnership is DeployBaseRelease {
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
-            
             uint256 key = vm.envUint("PRIVATE_KEY");
             vm.startBroadcast(key);
-
 
             // Transfer ownerhip
             console.log("Transfer ownership to", configs[network].ownership);
@@ -112,7 +113,6 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                 }
             }
 
-          
             vm.stopBroadcast();
             console.log("-------------------- DONE");
         }

@@ -24,8 +24,8 @@ contract UpdateAllAllowedChains is Script {
         chains[0] = 1;
         //chains[1] = 59144;
         chains[1] = 8453;
-        
-        for(uint256 i; i < lineaAndEthMarkets.length; i++) {
+
+        for (uint256 i; i < lineaAndEthMarkets.length; i++) {
             address market = lineaAndEthMarkets[i];
             for (uint256 j; j < chains.length; j++) {
                 uint32 chainId = chains[j];
@@ -40,6 +40,5 @@ contract UpdateAllAllowedChains is Script {
                 console.log("Allowed chain updated for market %s", market);
             }
         }
-
     }
 }

@@ -1,5 +1,5 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\Operator\Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\Operator\Operator.sol)
 
 **Inherits:**
 [OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md), OwnableUpgradeable
@@ -560,36 +560,6 @@ Returns USD value for all markets
 ```solidity
 function getUSDValueForAllMarkets() external view returns (uint256);
 ```
-
-### beforeWithdrawOnExtension
-
-Checks whitelist status on withdrawOnExtension
-
-
-```solidity
-function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
-
-
-### beforeBorrowOnExtension
-
-Checks whitelist status on borrowOnExtension
-
-
-```solidity
-function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
-
 
 ### beforeRebalancing
 

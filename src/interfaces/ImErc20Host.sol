@@ -175,7 +175,8 @@ interface ImErc20Host {
      * @param borrower The address that borrow is executed for
      * @param minAmount The min amount of underlying to be accounted for
      */
-    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount) external;
+    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+        external;
 
     /**
      * @notice Extract amount to be used for rebalancing operation

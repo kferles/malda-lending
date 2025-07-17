@@ -37,7 +37,7 @@ contract SetWhitelistedUsersOnGateway is Script {
         users[23] = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
         users[24] = 0xBd0Ce952bA069A1e15f3bf3916d4B07bBBdBC8B3;
 
-        for (uint256 i; i< users.length; ++i) {
+        for (uint256 i; i < users.length; ++i) {
             console.log("Setting whitelisted user:", users[i]);
             vm.startBroadcast(key);
             market.setWhitelistedUser(users[i], true);

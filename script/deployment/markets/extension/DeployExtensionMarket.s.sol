@@ -28,7 +28,8 @@ contract DeployExtensionMarket is Script {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementationV1.0.1", addressToString(underlyingToken)));
+        bytes32 implSalt =
+            getSalt(string.concat("mTokenGateway-implementationV1.0.1", addressToString(underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 

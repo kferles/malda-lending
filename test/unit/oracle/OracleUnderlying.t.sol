@@ -38,6 +38,7 @@ contract MockChainlinkOracle {
 contract DummyToken {
     string public symbol;
     uint256 public decimals;
+
     constructor(string memory _symbol, uint256 _decimals) {
         symbol = _symbol;
         decimals = _decimals;
@@ -46,11 +47,11 @@ contract DummyToken {
 
 contract DummyMToken {
     address public underlying;
+
     constructor(address _underlying) {
         underlying = _underlying;
     }
 }
-
 
 contract MixedPriceOracleV3_Test is Operator, Test {
     MixedPriceOracleV3 mixedPriceOracle;
@@ -74,18 +75,18 @@ contract MixedPriceOracleV3_Test is Operator, Test {
     DummyMToken mLargeDecimalsToken;
     uint256 usdPerLargeToken = 1;
     uint256 largeTokenDecimals = 30;
-    
 
     uint256 feedDecimals = 8; //chainlink returns answers in 8 decimals
+
     function newUSDOracle(uint256 usdPerToken) public returns (MockChainlinkOracle) {
         uint256 decimals = feedDecimals;
-        uint256 price = 10**decimals * usdPerToken;
+        uint256 price = 10 ** decimals * usdPerToken;
         return new MockChainlinkOracle(price, decimals);
     }
 
     function newOracleInBase(uint256 usdPerQuotedToken, uint256 usdPerBaseToken) public returns (MockChainlinkOracle) {
         uint256 decimals = feedDecimals;
-        uint256 price = 10**decimals * usdPerQuotedToken / usdPerBaseToken;
+        uint256 price = 10 ** decimals * usdPerQuotedToken / usdPerBaseToken;
         return new MockChainlinkOracle(price, decimals);
     }
 
@@ -145,12 +146,12 @@ contract MixedPriceOracleV3_Test is Operator, Test {
         console.log("btcPrice", btcPrice);
         console.log("ethPrice", ethPrice);
         console.log("usdcPrice", usdcPrice);
-        assertEq(btcPrice, 10**(36-bitcoinDecimals) * usdPerBitcoin);
-        assertEq(ethPrice, 10**(36 - ethDecimals) * usdPerEth);
-        assertEq(usdcPrice, 10**(36 - usdcDecimals) * usdPerUsdc);
+        assertEq(btcPrice, 10 ** (36 - bitcoinDecimals) * usdPerBitcoin);
+        assertEq(ethPrice, 10 ** (36 - ethDecimals) * usdPerEth);
+        assertEq(usdcPrice, 10 ** (36 - usdcDecimals) * usdPerUsdc);
 
-        assertEq(usdPerBitcoin *1e8, _convertMarketAmountToUSDValue(1e8, address(mBTC)), "A");
-        assertEq(usdPerEth *1e8, _convertMarketAmountToUSDValue(1e18, address(mETH)), "B");
-        assertEq(usdPerUsdc *1e8, _convertMarketAmountToUSDValue(1e6, address(mUSDC)), "C");
+        assertEq(usdPerBitcoin * 1e8, _convertMarketAmountToUSDValue(1e8, address(mBTC)), "A");
+        assertEq(usdPerEth * 1e8, _convertMarketAmountToUSDValue(1e18, address(mETH)), "B");
+        assertEq(usdPerUsdc * 1e8, _convertMarketAmountToUSDValue(1e6, address(mUSDC)), "C");
     }
 }

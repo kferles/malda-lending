@@ -17,14 +17,20 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployRebalancer is Script {
     function run(address roles, address saveAddress, Deployer deployer) public returns (address) {
+        //function run() public returns (address) {
         uint256 key = vm.envUint("PRIVATE_KEY");
         bytes32 salt = getSalt("RebalancerV1.0");
+
+        //address roles = 0x3dc52279175EE96b6A60f6870ec4DfA417c916E3;
+        //address saveAddress = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+        //Deployer deployer = Deployer(payable(0x7775C52aeA3780944aE69b389c23c9de325ce29B));
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
+            created =
+                deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
         } else {

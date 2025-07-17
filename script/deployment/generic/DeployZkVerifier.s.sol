@@ -14,7 +14,9 @@ contract DeployZkVerifier is Script {
         address created = _deployer.precompute(salt);
         if (created.code.length == 0) {
             vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
-            created = _deployer.create(salt, abi.encodePacked(type(ZkVerifier).creationCode, abi.encode(owner,imageId, verifier)));
+            created = _deployer.create(
+                salt, abi.encodePacked(type(ZkVerifier).creationCode, abi.encode(owner, imageId, verifier))
+            );
             vm.stopBroadcast();
             console.log("ZkVerifier deployed at: %s", created);
         } else {

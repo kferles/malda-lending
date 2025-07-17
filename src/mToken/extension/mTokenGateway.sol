@@ -60,7 +60,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     mapping(address => bool) public userWhitelisted;
     bool public whitelistEnabled;
 
-    uint32 private constant LINEA_CHAIN_ID = 59141; // TESTNET; TODO: change back to 59144
+    uint32 private constant LINEA_CHAIN_ID = 59144;
 
     ///@dev gas fee for `supplyOnHost`
     uint256 public gasFee;
@@ -166,7 +166,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function setUnderlying(address _addr) external onlyOwner {
         underlying = _addr;
     }
-    
+
     /**
      * @notice Sets the gas fee
      * @param amount the new gas fee
@@ -301,17 +301,16 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
-
         // Decode the dynamic array of journals.
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
 
         // Check the L1Inclusion flag for each journal.
-        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
-                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole())
+            || _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
-                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                (,,,,,, bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
                 if (!L1Inclusion) {
                     revert mTokenGateway_L1InclusionRequired();
                 }

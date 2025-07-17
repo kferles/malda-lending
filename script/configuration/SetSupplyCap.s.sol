@@ -25,6 +25,5 @@ contract SetSupplyCap is Script {
         vm.stopBroadcast();
 
         console.log(" Supply cap set for market %s", market);
-
     }
 }

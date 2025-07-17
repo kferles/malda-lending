@@ -18,7 +18,9 @@ contract DeployTimelockController is Script {
             uint256 minDelay = 3600;
             address[] memory data = new address[](1);
             data[0] = owner;
-            created = _deployer.create(salt, abi.encodePacked(type(TimelockController).creationCode, abi.encode(minDelay, data, data, owner)));
+            created = _deployer.create(
+                salt, abi.encodePacked(type(TimelockController).creationCode, abi.encode(minDelay, data, data, owner))
+            );
             vm.stopBroadcast();
             console.log("TimelockController deployed at: %s", created);
         } else {

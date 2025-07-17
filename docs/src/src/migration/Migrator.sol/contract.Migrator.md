@@ -1,37 +1,54 @@
 # Migrator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\migration\Migrator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\migration\Migrator.sol)
+
+
+## State Variables
+### allowedMarkets
+
+```solidity
+mapping(address => bool) public allowedMarkets;
+```
+
+
+### MENDI_COMPTROLLER
+
+```solidity
+address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103;
+```
+
+
+### MALDA_OPERATOR
+
+```solidity
+address public immutable MALDA_OPERATOR;
+```
 
 
 ## Functions
-### getAllCollateralMarkets
-
-Get all markets where `params.userV1` has collateral in on Mendi
+### constructor
 
 
 ```solidity
-function getAllCollateralMarkets(MigrationParams calldata params) external view returns (address[] memory markets);
+constructor(address _operator);
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`params`|`MigrationParams`|Migration parameters containing protocol addresses|
+### getAllCollateralMarkets
 
+Get all markets where `user` has collateral in on Mendi
+
+
+```solidity
+function getAllCollateralMarkets(address user) external view returns (address[] memory markets);
+```
 
 ### getAllPositions
 
-Get all `migratable` positions from Mendi to Malda
+Get all `migratable` positions from Mendi to Malda for `user`
 
 
 ```solidity
-function getAllPositions(MigrationParams calldata params) external returns (Position[] memory positions);
+function getAllPositions(address user) external returns (Position[] memory positions);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`params`|`MigrationParams`|Migration parameters containing protocol addresses|
-
 
 ### migrateAllPositions
 
@@ -39,14 +56,8 @@ Migrates all positions from Mendi to Malda
 
 
 ```solidity
-function migrateAllPositions(MigrationParams calldata params) external;
+function migrateAllPositions() external;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`params`|`MigrationParams`|Migration parameters containing protocol addresses|
-
 
 ### _collectMendiPositions
 
@@ -54,7 +65,7 @@ Collects all user positions from Mendi
 
 
 ```solidity
-function _collectMendiPositions(MigrationParams memory params) private returns (Position[] memory);
+function _collectMendiPositions(address user) private returns (Position[] memory);
 ```
 
 ### _getMaldaMarket
@@ -63,21 +74,10 @@ Gets corresponding Malda market for a given underlying
 
 
 ```solidity
-function _getMaldaMarket(address maldaOperator, address underlying) private view returns (address);
+function _getMaldaMarket(address underlying) private view returns (address);
 ```
 
 ## Structs
-### MigrationParams
-
-```solidity
-struct MigrationParams {
-    address mendiComptroller;
-    address maldaOperator;
-    address userV1;
-    address userV2;
-}
-```
-
 ### Position
 
 ```solidity

@@ -1,5 +1,5 @@
 # mTokenConfiguration
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\mTokenConfiguration.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\mTokenConfiguration.sol)
 
 **Inherits:**
 [mTokenStorage](/src\mToken\mTokenStorage.sol\abstract.mTokenStorage.md)
@@ -11,15 +11,6 @@
 
 ```solidity
 modifier onlyAdmin();
-```
-
-### setSameChainFlowState
-
-Sets a new same chain flow state
-
-
-```solidity
-function setSameChainFlowState(bool _newState) external onlyAdmin;
 ```
 
 ### setOperator

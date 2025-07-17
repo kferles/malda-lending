@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
@@ -12,7 +11,12 @@ import {IPauser} from "src/interfaces/IPauser.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -32,7 +36,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
     address[] extensionMarketAddresses;
     address owner;
 
-    mapping(string=>MarketRelease) public fullConfigs;
+    mapping(string => MarketRelease) public fullConfigs;
 
     address rolesContract;
     address zkVerifier;
@@ -221,7 +225,6 @@ contract DeployMarketsRelease is DeployBaseRelease {
             reserveFactor: 0,
             liquidationBonus: 0
         });
-        
     }
 
     function run() public {
@@ -238,7 +241,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         deployer = Deployer(payable(vm.parseJsonAddress(jsonContent, ".Deployer")));
 
         delete marketAddresses;
-        delete extensionMarketAddresses;    
+        delete extensionMarketAddresses;
 
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
@@ -249,7 +252,6 @@ contract DeployMarketsRelease is DeployBaseRelease {
             forks[network] = vm.createSelectFork(network);
 
             owner = configs[network].deployer.owner;
-            
 
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
@@ -262,7 +264,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
             } else {
                 deployExt = new DeployExtensionMarket();
                 console.log("Deploying extension chain");
-            _deployExtensionChain(network);
+                _deployExtensionChain(network);
             }
 
             console.log("-------------------- DONE");
@@ -287,21 +289,9 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
             string memory obj;
             if (isExtension) {
-                obj = string(
-                    abi.encodePacked(
-                        '{"address":"',
-                        vm.toString(addr),
-                        '","isExtension":true}'
-                    )
-                );
+                obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '","isExtension":true}'));
             } else {
-                obj = string(
-                    abi.encodePacked(
-                        '{"address":"',
-                        vm.toString(addr),
-                        '"}'
-                    )
-                );
+                obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '"}'));
             }
 
             json = string(abi.encodePacked(json, obj));
@@ -313,9 +303,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         vm.writeFile(outputPath, json);
     }
 
-    function _deployHostChain(string memory network)
-        internal
-    {
+    function _deployHostChain(string memory network) internal {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(true, configs[network].markets[i], network);
@@ -325,9 +313,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         }
     }
 
-    function _deployExtensionChain(string memory network)
-        internal
-    {
+    function _deployExtensionChain(string memory network) internal {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(false, configs[network].markets[i], network);
@@ -339,11 +325,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         //
     }
 
-    function _deployAndConfigureMarket(
-        bool isHost,
-        MarketRelease memory market,
-        string memory network
-    ) internal {
+    function _deployAndConfigureMarket(bool isHost, MarketRelease memory market, string memory network) internal {
         address interestModel;
 
         // Deploy interest model only for host chain
@@ -355,9 +337,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         // Deploy proxy for market
         if (isHost) {
-            marketAddress = _deployHostMarket(
-                deployer, market, interestModel
-            );
+            marketAddress = _deployHostMarket(deployer, market, interestModel);
 
             _setDefaultGasHelper(marketAddress);
 
@@ -368,8 +348,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
             Pauser(pauser).addPausableMarket(marketAddress, IPauser.PausableType.Host);
             vm.stopBroadcast();
         } else {
-            marketAddress =
-                _deployExtensionMarket(deployer, market);
+            marketAddress = _deployExtensionMarket(deployer, market);
             marketAddresses.push(marketAddress);
             extensionMarketAddresses.push(marketAddress);
 
@@ -386,7 +365,6 @@ contract DeployMarketsRelease is DeployBaseRelease {
         }
     }
 
-
     function _deployInterestModel(InterestConfig memory modelConfig) internal returns (address) {
         return deployInterest.run(
             deployer,
@@ -402,11 +380,10 @@ contract DeployMarketsRelease is DeployBaseRelease {
         );
     }
 
-    function _deployHostMarket(
-        Deployer _deployer,
-        MarketRelease memory market,
-        address interestModel
-    ) internal returns (address) {
+    function _deployHostMarket(Deployer _deployer, MarketRelease memory market, address interestModel)
+        internal
+        returns (address)
+    {
         return deployHost.run(
             _deployer,
             DeployHostMarket.MarketData({
@@ -424,10 +401,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         );
     }
 
-    function _deployExtensionMarket(
-        Deployer _deployer,
-        MarketRelease memory market
-    ) internal returns (address) {
+    function _deployExtensionMarket(Deployer _deployer, MarketRelease memory market) internal returns (address) {
         return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 

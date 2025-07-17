@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
@@ -9,7 +8,12 @@ import {Roles} from "src/Roles.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -28,11 +32,11 @@ contract ConfigureRelease is DeployBaseRelease {
 
     address[] marketList;
 
-    mapping(string=>uint256) public collateralFactors;
-    mapping(string=>uint256) public reserveFactors;
-    mapping(string=>uint256) public liquidationBonuses;
-    mapping(string=>uint256) public borrowCaps;
-    mapping(string=>MarketRelease) public fullConfigs;
+    mapping(string => uint256) public collateralFactors;
+    mapping(string => uint256) public reserveFactors;
+    mapping(string => uint256) public liquidationBonuses;
+    mapping(string => uint256) public borrowCaps;
+    mapping(string => MarketRelease) public fullConfigs;
 
     address oracle;
     address operator;
@@ -74,14 +78,14 @@ contract ConfigureRelease is DeployBaseRelease {
         collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
-        reserveFactors["mUSDC"] =   100000000000000000;
-        reserveFactors["mWETH"] =   150000000000000000;
-        reserveFactors["mUSDT"] =   100000000000000000;
-        reserveFactors["mDAI"] =    100000000000000000;
-        reserveFactors["mWBTC"] =   500000000000000000;
+        reserveFactors["mUSDC"] = 100000000000000000;
+        reserveFactors["mWETH"] = 150000000000000000;
+        reserveFactors["mUSDT"] = 100000000000000000;
+        reserveFactors["mDAI"] = 100000000000000000;
+        reserveFactors["mWBTC"] = 500000000000000000;
         reserveFactors["mwstETH"] = 50000000000000000;
-        reserveFactors["mezETH"] =  450000000000000000;
-        reserveFactors["mweETH"] =  450000000000000000;
+        reserveFactors["mezETH"] = 450000000000000000;
+        reserveFactors["mweETH"] = 450000000000000000;
         reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
@@ -284,7 +288,6 @@ contract ConfigureRelease is DeployBaseRelease {
     }
 
     function run() public {
-        
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
@@ -312,9 +315,7 @@ contract ConfigureRelease is DeployBaseRelease {
         }
     }
 
-    function _configure(string memory network)
-        internal
-    {
+    function _configure(string memory network) internal {
         uint256 feedsLength = feeds.length;
         for (uint256 i; i < feedsLength; ++i) {
             setFeed.run(oracle);
@@ -325,13 +326,9 @@ contract ConfigureRelease is DeployBaseRelease {
             MarketRelease storage mktRelease = fullConfigs[configs[network].markets[i].name];
             _configureMarket(marketList[i], mktRelease);
         }
-
     }
 
-    function _configureMarket(
-        address marketAddress,
-        MarketRelease storage market
-    ) internal {
+    function _configureMarket(address marketAddress, MarketRelease storage market) internal {
         // Configure market on host chain
         console.log("Configuring market", marketAddress);
         _configureMarket(
@@ -375,9 +372,7 @@ contract ConfigureRelease is DeployBaseRelease {
 
         // Set borrow rate max mantissa
         _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
     }
-
 
     function _setRoles(string memory network) internal {
         uint256 rolesLength = configs[network].roles.length;

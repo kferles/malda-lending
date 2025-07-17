@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
@@ -12,7 +11,12 @@ import {Roles} from "src/Roles.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -75,7 +79,6 @@ contract DeployCoreRelease is DeployBaseRelease {
     function run() public {
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
-
             string memory network = networks[i];
             console.log("\n=== Deploying to %s ===", network);
 
@@ -93,7 +96,7 @@ contract DeployCoreRelease is DeployBaseRelease {
             deployRebalancer = new DeployRebalancer();
             deployAcrossBridge = new DeployAcrossBridge();
             deployEverclearBridge = new DeployEverclearBridge();
-            setOperatorInRewardDistributor = new SetOperatorInRewardDistributor();  
+            setOperatorInRewardDistributor = new SetOperatorInRewardDistributor();
             deployPauser = new DeployPauser();
             deployInterest = new DeployJumpRateModelV4();
             deployGasHelper = new DeployGasHelper();
@@ -102,14 +105,17 @@ contract DeployCoreRelease is DeployBaseRelease {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
             address batchSubmitter = _deployBatchSubmitter(rolesContract, zkVerifier);
-            address timelock =  _deployTimelock(owner);
+            address timelock = _deployTimelock(owner);
             address gasHelper = _deployGasHelper();
-            (address rebalancer, address acrossBridge, address everclearBridge) = _deployAndConfigRebalancerAndBridges(network, rolesContract);
-            address pauser; 
+            (address rebalancer, address acrossBridge, address everclearBridge) =
+                _deployAndConfigRebalancerAndBridges(network, rolesContract);
+            address pauser;
             address rewardDistributor;
-            address oracle; 
+            address oracle;
             address operator;
             if (configs[network].isHost) {
                 console.log("Deploying host chain");
@@ -119,13 +125,12 @@ contract DeployCoreRelease is DeployBaseRelease {
                 pauser = _deployExtensionChain(rolesContract);
             }
 
-
             // Save addreses to `release-deployed-core-addresses.json`
             // {
             //   'Pauser': '0x1',
             //   'BatchSubmitter: '0x2'
             //   ...
-            // } 
+            // }
             string memory json;
             json = vm.serializeAddress("core", "Pauser", pauser);
             json = vm.serializeAddress("core", "BatchSubmitter", batchSubmitter);
@@ -142,24 +147,23 @@ contract DeployCoreRelease is DeployBaseRelease {
             }
             json = vm.serializeAddress("core", "Deployer", address(deployer));
             json = vm.serializeAddress("core", "DefaultGasHelper", gasHelper);
-            vm.writeJson(
-                json,
-                "script/deployment/mainnet/output/release-deployed-core-addresses.json"
-            );
+            vm.writeJson(json, "script/deployment/mainnet/output/release-deployed-core-addresses.json");
 
             console.log("-------------------- DONE");
         }
     }
 
-    function _deployAndConfigRebalancerAndBridges(string memory network, address rolesContract) internal returns (address rebalancer, address acrossBridge, address everclearBridge) {
+    function _deployAndConfigRebalancerAndBridges(string memory network, address rolesContract)
+        internal
+        returns (address rebalancer, address acrossBridge, address everclearBridge)
+    {
         console.log(" --- Deploying rebalancer");
         rebalancer = deployRebalancer.run(rolesContract, owner, deployer);
         console.log(" --- Deployed rebalancer at ", rebalancer);
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            acrossBridge =
-                deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
+            acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(
@@ -167,12 +171,12 @@ contract DeployCoreRelease is DeployBaseRelease {
                 configs[network].chainId
             );
         }
-     
+
         console.log(" --- Deploying everclearBridge");
         everclearBridge =
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
-      
+
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
         setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
 
@@ -191,13 +195,9 @@ contract DeployCoreRelease is DeployBaseRelease {
         _setOperatorInRewardDistributor(operator, rewardDistributor);
     }
 
-    function _deployExtensionChain(address rolesContract)
-        internal
-        returns (address pauser)
-    {
+    function _deployExtensionChain(address rolesContract) internal returns (address pauser) {
         pauser = _deployPauser(rolesContract, address(0));
     }
-
 
     function _deployDeployer(string memory network) internal returns (address) {
         return deployDeployer.run(configs[network].chainId, owner, configs[network].deployer.salt);
@@ -242,7 +242,7 @@ contract DeployCoreRelease is DeployBaseRelease {
     function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {
         setOperatorInRewardDistributor.run(operator, rewardDistributor);
     }
-    
+
     function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
         return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
     }

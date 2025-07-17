@@ -16,8 +16,9 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployLiquidationHelper is Script {
     function run(Deployer _deployer) public returns (address) {
-        bytes32 salt =
-            keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("LiquidationHelperV1.0.0")));
+        bytes32 salt = keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("LiquidationHelperV1.0.0"))
+        );
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         address created = _deployer.create(salt, type(LiquidationHelper).creationCode);

@@ -18,7 +18,7 @@ import {OracleFeedV4} from "script/deployers/Types.sol";
 contract SetPriceFeedOnOracleV4 is Script {
     function runTestnet(address oracle, string memory symbol, address priceFeed, uint8 underlyingDecimals) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
-         MixedPriceOracleV4.PriceConfig memory config = MixedPriceOracleV4.PriceConfig({
+        MixedPriceOracleV4.PriceConfig memory config = MixedPriceOracleV4.PriceConfig({
             api3Feed: priceFeed,
             eOracleFeed: priceFeed,
             toSymbol: "USD",
@@ -31,7 +31,7 @@ contract SetPriceFeedOnOracleV4 is Script {
         vm.stopBroadcast();
         console.log("Oracle feed set");
     }
-    
+
     function run(address oracle) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
@@ -157,7 +157,6 @@ contract SetPriceFeedOnOracleV4 is Script {
             underlyingDecimals: 18
         });
 
-        
         uint256 len = feeds.length;
         string[] memory symbols = new string[](len);
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](len);

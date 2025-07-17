@@ -3,8 +3,7 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {SetRole} from "script/configuration/SetRole.s.sol";
-import { mTokenConfiguration } from "src/mToken/mTokenConfiguration.sol";
-
+import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 
 interface ITransferOwnership {
     function transferOwnership(address _addr) external;
@@ -24,7 +23,6 @@ contract TransferOwnership is Script {
     bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
     bytes32 public constant GUARDIAN_BORROW_CAP = keccak256("GUARDIAN_BORROW_CAP");
     bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
-
 
     function run() public virtual {
         uint256 key = vm.envUint("PRIVATE_KEY");
@@ -54,14 +52,12 @@ contract TransferOwnership is Script {
         interests[6] = 0x1f0C88a6FF8daB04307fc9d6203542583Db9F336;
         interests[7] = 0xabEe4794832EaeaE25eE972D47C0ac540d8BBB2f;
 
-
         address zkVerifier = 0xE32Fc580E6e3f6f5947BC2d900062DCe019F375f;
         address pauser = 0xDdCca3eDa77622B7Ff5b7f11b340A8F818a87d2C;
         address operator = 0x05bD298c0C3F34B541B42F867BAF6707911BE437;
         address batchSubmitter = 0x04f0cDc5a215dEdf6A1Ed5444E07367e20768041;
         bool isHost = true;
         SetRole setRole = new SetRole();
-
 
         // add new roles
         console.log("Adding new roles");
@@ -77,7 +73,7 @@ contract TransferOwnership is Script {
         setRole.run(rolesContract, multisig, GUARDIAN_BORROW_CAP, true);
         setRole.run(rolesContract, multisig, GUARDIAN_SUPPLY_CAP, true);
         console.log("Roles added");
-        
+
         // remove old roles
         console.log("Remove old roles");
         setRole.run(rolesContract, oldOwner, PAUSE_MANAGER, false);
@@ -92,10 +88,9 @@ contract TransferOwnership is Script {
         setRole.run(rolesContract, oldOwner, GUARDIAN_SUPPLY_CAP, false);
         console.log("Roles removed");
 
-
         vm.startBroadcast(key);
-        // transfer ownership 
-      
+        // transfer ownership
+
         if (isHost) {
             console.log("Transfer markets admin for host");
             //call setPendingAdmin on all markets
@@ -106,7 +101,8 @@ contract TransferOwnership is Script {
         } else {
             console.log("Transfer markets owner for extension");
             for (uint256 i; i < markets.length; i++) {
-                if (i !=5 ) { //ezEth available only on Linea
+                if (i != 5) {
+                    //ezEth available only on Linea
                     ITransferOwnership(markets[i]).transferOwnership(multisig);
                 }
             }
@@ -129,7 +125,6 @@ contract TransferOwnership is Script {
         ITransferOwnership(batchSubmitter).transferOwnership(multisig);
         console.log("Owner set");
 
-
         if (isHost) {
             console.log("Transfer Operator owner");
             ITransferOwnership(operator).transferOwnership(multisig);
@@ -141,7 +136,6 @@ contract TransferOwnership is Script {
             }
             console.log("Owner set");
         }
-
 
         vm.stopBroadcast();
     }

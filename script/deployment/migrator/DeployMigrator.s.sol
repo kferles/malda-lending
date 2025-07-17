@@ -20,8 +20,7 @@ contract DeployMigrator is Script {
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created =
-                deployer.create(salt, type(Migrator).creationCode);
+            created = deployer.create(salt, type(Migrator).creationCode);
             vm.stopBroadcast();
             console.log("Migrator deployed at: %s", created);
         } else {

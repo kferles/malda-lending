@@ -55,11 +55,7 @@ contract Migrator {
     /**
      * @notice Get all markets where `user` has collateral in on Mendi
      */
-    function getAllCollateralMarkets(address user)
-        external
-        view
-        returns (address[] memory markets)
-    {
+    function getAllCollateralMarkets(address user) external view returns (address[] memory markets) {
         IMendiMarket[] memory mendiMarkets = IMendiComptroller(MENDI_COMPTROLLER).getAssetsIn(user);
 
         uint256 marketsLength = mendiMarkets.length;
@@ -107,7 +103,9 @@ contract Migrator {
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
-                ImErc20Host(position.maldaMarket).mintOrBorrowMigration(false, position.borrowAmount, address(this), msg.sender, 0);
+                ImErc20Host(position.maldaMarket).mintOrBorrowMigration(
+                    false, position.borrowAmount, address(this), msg.sender, 0
+                );
             }
         }
 
@@ -170,8 +168,7 @@ contract Migrator {
             uint256 borrowAmount = mendiMarket.borrowBalanceStored(user);
 
             if (collateralUnderlyingAmount > 0 || borrowAmount > 0) {
-                address maldaMarket =
-                    _getMaldaMarket(IMendiMarket(address(mendiMarket)).underlying());
+                address maldaMarket = _getMaldaMarket(IMendiMarket(address(mendiMarket)).underlying());
                 if (maldaMarket != address(0)) {
                     positions[positionCount++] = Position({
                         mendiMarket: address(mendiMarket),

@@ -10,7 +10,12 @@ import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -28,8 +33,7 @@ import {DeployMixedPriceOracleV4} from "../oracles/DeployMixedPriceOracleV4.s.so
 import {SetRole} from "../../configuration/SetRole.s.sol";
 import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
 
-
-// forge script DeployCoreTestnet --slow 
+// forge script DeployCoreTestnet --slow
 // forge script DeployCoreTestnet --slow  --multi --verify --broadcast
 contract DeployCoreTestnet is DeployBaseRelease {
     using stdJson for string;
@@ -49,7 +53,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
     DeployGasHelper deployGasHelper;
     SetRole setRole;
 
-
     function setUp() public override {
         configPath = "deployment-config-testnet.json";
         super.setUp();
@@ -58,7 +61,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
     function run() public {
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
-
             string memory network = networks[i];
             console.log("\n=== Deploying to %s ===", network);
 
@@ -70,7 +72,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
 
             deployGasHelper = new DeployGasHelper();
 
-
             // deploys or fetches the existing one
             deployRbac = new DeployRbac();
             deployZkVerifier = new DeployZkVerifier();
@@ -81,13 +82,14 @@ contract DeployCoreTestnet is DeployBaseRelease {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
             deployPauser = new DeployPauser();
-            
+
             _deployGasHelper();
-            
 
             address pauser;
             if (configs[network].isHost) {
@@ -95,7 +97,7 @@ contract DeployCoreTestnet is DeployBaseRelease {
                 deployOperator = new DeployOperator();
                 deployOracle = new DeployMixedPriceOracleV4();
                 deployReward = new DeployRewardDistributor();
-          
+
                 address rewardDistributor = _deployRewardDistributor();
                 address oracle = _deployOracle(configs[network].oracle, rolesContract);
                 address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
@@ -107,7 +109,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
                 console.log("Deploying Pauser on host chain");
                 pauser = _deployPauser(rolesContract, address(0));
                 console.log("Pauser deployed on host chain", pauser);
-
             }
             console.log("-------------------- DONE");
         }
@@ -172,6 +173,4 @@ contract DeployCoreTestnet is DeployBaseRelease {
     function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
         return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
     }
-
-  
 }

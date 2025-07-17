@@ -100,7 +100,9 @@ contract DeployProtocol is DeployBase {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
             if (configs[network].isHost) {
@@ -125,7 +127,6 @@ contract DeployProtocol is DeployBase {
                 console.log("Deploying extension chain");
                 _deployExtensionChain(network, rolesContract, zkVerifier);
             }
-
         }
 
         // VerifyDeployment verifier = new VerifyDeployment();
@@ -156,7 +157,9 @@ contract DeployProtocol is DeployBase {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, _zkVerifier);
+            _deployAndConfigureMarket(
+                false, configs[network].markets[i], address(0), rolesContract, network, _zkVerifier
+            );
         }
 
         // Set image ID for all markets
@@ -179,9 +182,7 @@ contract DeployProtocol is DeployBase {
 
         // Deploy proxy for market
         if (isHost) {
-            marketAddress = _deployHostMarket(
-                deployer, market, operator, interestModel, _zkVerifier, rolesContract
-            );
+            marketAddress = _deployHostMarket(deployer, market, operator, interestModel, _zkVerifier, rolesContract);
 
             marketAddresses.push(marketAddress);
 
@@ -190,8 +191,7 @@ contract DeployProtocol is DeployBase {
                 vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
             );
         } else {
-            marketAddress =
-                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
+            marketAddress = _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
 
             console.log("Proxy admin address:");
             console.logBytes32(

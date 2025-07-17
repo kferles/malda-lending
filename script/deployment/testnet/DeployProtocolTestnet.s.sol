@@ -17,7 +17,12 @@ import {IOwnable} from "src/interfaces/IOwnable.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -45,9 +50,7 @@ import {UpdateAllowedChains} from "../../configuration/UpdateAllowedChains.s.sol
 
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
-import {DeployConnextBridge} from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
-import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
 
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
@@ -87,11 +90,8 @@ contract DeployProtocolTestnet is DeployBaseRelease {
     UpdateAllowedChains updateAllowedChains;
     DeployRebalancer deployRebalancer;
     DeployAcrossBridge deployAcrossBridge;
-    DeployConnextBridge deployConnextBridge;
     DeployEverclearBridge deployEverclearBridge;
-    DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
-
 
     function setUp() public override {
         configPath = "deployment-config-testnet.json";
@@ -132,7 +132,9 @@ contract DeployProtocolTestnet is DeployBaseRelease {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
             deployPauser = new DeployPauser();
@@ -180,17 +182,10 @@ contract DeployProtocolTestnet is DeployBaseRelease {
                 configs[network].chainId
             );
         }
-        console.log(" --- Deploying connextBridge");
-        address connextBridge =
-            deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
-        console.log(" --- Deployed connextBridge at ", connextBridge);
         console.log(" --- Deploying everclearBridge");
         address everclearBridge =
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
-        console.log(" --- Deploying lzBridge");
-        address lzBridge = deployLZBridge.run(rolesContract, deployer);
-        console.log(" --- Deployed lzBridge at ", lzBridge);
 
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
         setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
@@ -217,7 +212,9 @@ contract DeployProtocolTestnet is DeployBaseRelease {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
-            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, pauser, _zkVerifier);
+            _deployAndConfigureMarket(
+                true, configs[network].markets[i], operator, rolesContract, network, pauser, _zkVerifier
+            );
             unchecked {
                 ++i;
             }
@@ -236,7 +233,9 @@ contract DeployProtocolTestnet is DeployBaseRelease {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, pauser, _zkVerifier);
+            _deployAndConfigureMarket(
+                false, configs[network].markets[i], address(0), rolesContract, network, pauser, _zkVerifier
+            );
             unchecked {
                 ++i;
             }
@@ -264,9 +263,7 @@ contract DeployProtocolTestnet is DeployBaseRelease {
 
         // Deploy proxy for market
         if (isHost) {
-            marketAddress = _deployHostMarket(
-                deployer, market, operator, interestModel, _zkVerifier, rolesContract
-            );
+            marketAddress = _deployHostMarket(deployer, market, operator, interestModel, _zkVerifier, rolesContract);
 
             marketAddresses.push(marketAddress);
 
@@ -275,8 +272,7 @@ contract DeployProtocolTestnet is DeployBaseRelease {
             Pauser(pauser).addPausableMarket(marketAddress, IPauser.PausableType.Host);
             vm.stopBroadcast();
         } else {
-            marketAddress =
-                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
+            marketAddress = _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
             marketAddresses.push(marketAddress);
             extensionMarketAddresses.push(marketAddress);
 
@@ -412,7 +408,6 @@ contract DeployProtocolTestnet is DeployBaseRelease {
 
         // Set borrow rate max mantissa
         _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
     }
 
     function _setRoles(address rolesContract, string memory network) internal {
@@ -458,7 +453,6 @@ contract DeployProtocolTestnet is DeployBaseRelease {
         setOperatorInRewardDistributor.run(operator, rewardDistributor);
     }
 
-    
     function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
         return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
     }

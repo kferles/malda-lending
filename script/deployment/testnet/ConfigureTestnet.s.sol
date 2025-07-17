@@ -9,7 +9,12 @@ import {Roles} from "src/Roles.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
@@ -25,7 +30,7 @@ import {SetReserveFactor} from "../../configuration/SetReserveFactor.s.sol";
 import {SetPriceFeedOnOracleV4} from "../../configuration/SetPriceFeedOnOracleV4.s.sol";
 import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol";
 
-// forge script ConfigureTestnet --slow 
+// forge script ConfigureTestnet --slow
 // forge script ConfigureTestnet --slow  --multi --broadcast
 contract ConfigureTestnet is DeployBaseRelease {
     using stdJson for string;
@@ -85,14 +90,15 @@ contract ConfigureTestnet is DeployBaseRelease {
         // SET before running it ^!
 
         // checks to make sure addresses were set
-        if (oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0) || zkVerifier == address(0) || operator == address(0) || pauser == address(0)) {
+        if (
+            oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0)
+                || zkVerifier == address(0) || operator == address(0) || pauser == address(0)
+        ) {
             revert ADDRESSES_NOT_SET();
         }
-        if (marketAddresses.length == 0 || marketAddresses[0] == address(0))
-        {
+        if (marketAddresses.length == 0 || marketAddresses[0] == address(0)) {
             revert MARKET_ADDRESSES_NOT_SET();
         }
-
     }
 
     function run() public {
@@ -126,9 +132,7 @@ contract ConfigureTestnet is DeployBaseRelease {
         }
     }
 
-    function _configure(string memory network)
-        internal
-    {
+    function _configure(string memory network) internal {
         uint256 feedsLength = feeds.length;
         for (uint256 i; i < feedsLength;) {
             setFeed.runTestnet(oracle, feeds[i].symbol, feeds[i].defaultFeed, feeds[i].underlyingDecimals);
@@ -144,7 +148,6 @@ contract ConfigureTestnet is DeployBaseRelease {
                 ++i;
             }
         }
-
     }
 
     function _configureMarket(
@@ -196,7 +199,6 @@ contract ConfigureTestnet is DeployBaseRelease {
 
         // Set borrow rate max mantissa
         _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
     }
 
     function _supportMarket(address market) internal {
@@ -227,7 +229,7 @@ contract ConfigureTestnet is DeployBaseRelease {
                 setRole.run(rolesContract, role.accounts[j], keccak256(abi.encodePacked(role.roleName)), true);
             }
         }
-    }   
+    }
 
     function _setReserveFactor(address market, uint256 reserveFactor) internal {
         setReserveFactor.run(market, reserveFactor);

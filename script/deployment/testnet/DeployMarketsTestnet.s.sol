@@ -9,13 +9,18 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
 } from "../../deployers/Types.sol";
 
 import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";
 import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.s.sol";
 
-// forge script DeployMarketsTestnet --slow 
+// forge script DeployMarketsTestnet --slow
 // forge script DeployMarketsTestnet --slow  --multi --verify --broadcast
 contract DeployMarketsTestnet is DeployBaseRelease {
     using stdJson for string;
@@ -31,7 +36,6 @@ contract DeployMarketsTestnet is DeployBaseRelease {
     address oracle;
     address pauser;
 
-
     DeployHostMarket deployHost;
     DeployExtensionMarket deployExt;
     DeployJumpRateModelV4 deployInterest;
@@ -42,7 +46,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         configPath = "deployment-config-testnet.json";
         super.setUp();
 
-        // SET before running it! Available after `DeployerCoreTestnet` 
+        // SET before running it! Available after `DeployerCoreTestnet`
         deployer = Deployer(payable(0x1E4B67AB819F9700aB6280ea0Beeaf19F2C48719));
         rolesContract = 0x81fb022f927fD78596dec4087A65cF3692Ca5E41;
         zkVerifier = 0x6E07A361B9145436056F41aff484cFa73E991218;
@@ -52,7 +56,10 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         // SET before running it ^!
 
         // check to make sure addresses were set
-        if (oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0) || zkVerifier == address(0) || operator == address(0) || pauser == address(0)) {
+        if (
+            oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0)
+                || zkVerifier == address(0) || operator == address(0) || pauser == address(0)
+        ) {
             revert ADDRESSES_NOT_SET();
         }
     }
@@ -82,9 +89,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         }
     }
 
-    function _deployHostChain(string memory network)
-        internal
-    {
+    function _deployHostChain(string memory network) internal {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployMarketOnNetwork(true, configs[network].markets[i], network);
@@ -94,9 +99,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         }
     }
 
-    function _deployExtensionChain(string memory network)
-        internal
-    {
+    function _deployExtensionChain(string memory network) internal {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployMarketOnNetwork(false, configs[network].markets[i], network);
@@ -108,27 +111,20 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         //
     }
 
-    function _deployMarketOnNetwork(
-        bool isHost,
-        MarketRelease memory market,
-        string memory network
-    ) internal {
+    function _deployMarketOnNetwork(bool isHost, MarketRelease memory market, string memory network) internal {
         // Deploy proxy for market
         if (isHost) {
             interestModel = _deployInterestModel(market.interestModel);
 
             marketAddress = _deployHostMarket(market);
-             // Setup allowed chains on host market
+            // Setup allowed chains on host market
             _updateAllowedChains(marketAddress, network);
         } else {
             marketAddress = _deployExtensionMarket(market);
         }
     }
 
-
-    function _deployHostMarket(
-        MarketRelease memory market
-    ) internal returns (address) {
+    function _deployHostMarket(MarketRelease memory market) internal returns (address) {
         return deployHost.run(
             deployer,
             DeployHostMarket.MarketData({
@@ -146,9 +142,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         );
     }
 
-    function _deployExtensionMarket(
-        MarketRelease memory market
-    ) internal returns (address) {
+    function _deployExtensionMarket(MarketRelease memory market) internal returns (address) {
         return deployExt.run(deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 

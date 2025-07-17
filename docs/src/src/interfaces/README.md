@@ -4,6 +4,7 @@
 - [external](/src\interfaces\external)
 - [IBridge](IBridge.sol\interface.IBridge.md)
 - [IDefaultAdapter](IDefaultAdapter.sol\interface.IDefaultAdapter.md)
+- [IGasFeesHelper](IGasFeesHelper.sol\interface.IGasFeesHelper.md)
 - [IInterestRateModel](IInterestRateModel.sol\interface.IInterestRateModel.md)
 - [IOperatorData](IOperator.sol\interface.IOperatorData.md)
 - [IOperatorDefender](IOperator.sol\interface.IOperatorDefender.md)

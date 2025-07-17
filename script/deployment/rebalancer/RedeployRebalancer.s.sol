@@ -30,13 +30,13 @@ contract RedeployRebalancer is Script {
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
+            created =
+                deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
         } else {
             console.log("Using existing Rebalancer at: %s", created);
         }
-
 
         // assign roles
         vm.startBroadcast(key);
