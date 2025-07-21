@@ -68,6 +68,7 @@ contract BatchSubmitter is Ownable {
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
 
     constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner) {
+        require(_roles != address(0), BatchSubmitter_AddressNotValid());
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
         rolesOperator = IRoles(_roles);
         verifier = IZkVerifier(_zkVerifier);

@@ -53,6 +53,9 @@ contract Rebalancer is IRebalancer {
     uint256 public transferTimeWindow;
 
     constructor(address _roles, address _saveAddress) {
+        require(_roles != address(0), Rebalancer_AddressNotValid());
+        require(_saveAddress != address(0), Rebalancer_AddressNotValid());
+        
         roles = IRoles(_roles);
         transferTimeWindow = 86400;
         saveAddress = _saveAddress;

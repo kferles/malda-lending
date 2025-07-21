@@ -91,11 +91,18 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         address zkVerifier_,
         address roles_
     ) external initializer {
+        require(underlying_ != address(0), mErc20Host_AddressNotValid());
+        require(operator_ != address(0), mErc20Host_AddressNotValid());
+        require(interestRateModel_ != address(0), mErc20Host_AddressNotValid());
+        require(zkVerifier_ != address(0), mErc20Host_AddressNotValid());
+        require(roles_ != address(0), mErc20Host_AddressNotValid());
+        require(admin_ != address(0), mErc20Host_AddressNotValid());
+
         // Initialize the base contract
         _proxyInitialize(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
-
+       
         verifier = IZkVerifier(zkVerifier_);
 
         rolesOperator = IRoles(roles_);

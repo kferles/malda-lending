@@ -34,6 +34,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     // ----------- STORAGE ------------
 
     error JumpRateModelV4_MultiplierNotValid();
+    error JumpRateModelV4_InputNotValid();
 
     /**
      * @inheritdoc IInterestRateModel
