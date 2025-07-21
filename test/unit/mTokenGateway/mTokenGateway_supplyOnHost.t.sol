@@ -74,6 +74,22 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
+    function test_GivenUserHasEnoughBalance_ButBlacklisted(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenAmountGreaterThan0
+    {
+        _getTokens(weth, address(this), amount);
+
+        weth.approve(address(mWethExtension), amount);
+
+        blacklister.blacklist(address(this));
+        vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+        mWethExtension.supplyOnHost(
+            amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector
+        );
+    }
+
     function test_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)

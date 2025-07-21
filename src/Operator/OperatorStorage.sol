@@ -25,6 +25,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
@@ -37,6 +38,11 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @inheritdoc IOperator
      */
     IRoles public rolesOperator;
+
+    /**
+     * @inheritdoc IOperator
+     */
+    IBlacklister public blacklistOperator;
 
     /**
      * @inheritdoc IOperator
@@ -153,6 +159,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_RepayingTooMuch();
     error Operator_OnlyAdminOrRole();
     error Operator_MarketNotListed();
+    error Operator_UserBlacklisted();
     error Operator_PriceFetchFailed();
     error Operator_SenderMustBeToken();
     error Operator_UserNotWhitelisted();
@@ -164,6 +171,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_InsufficientLiquidity();
     error Operator_MarketBorrowCapReached();
     error Operator_InvalidCollateralFactor();
+    error Operator_InvalidBlacklistOperator();
     error Operator_InvalidRewardDistributor();
     error Operator_OracleUnderlyingFetchError();
     error Operator_Deactivate_MarketBalanceOwed();

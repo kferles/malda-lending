@@ -29,6 +29,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 // contracts
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
@@ -44,6 +45,11 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
      * @inheritdoc ImTokenGateway
      */
     IRoles public rolesOperator;
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    IBlacklister public blacklistOperator;
 
     IZkVerifier public verifier;
 
@@ -70,15 +76,18 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         _disableInitializers();
     }
 
-    function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
+    function initialize(address payable _owner, address _underlying, address _roles, address _blacklister, address zkVerifier_)
         external
         initializer
     {
         __Ownable_init(_owner);
+        require(_roles != address(0), mTokenGateway_AddressNotValid());
         require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
+        require(_blacklister != address(0), mTokenGateway_AddressNotValid());
 
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
+        blacklistOperator = IBlacklister(_blacklister);
 
         verifier = IZkVerifier(zkVerifier_);
     }
@@ -92,6 +101,11 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         if (whitelistEnabled) {
             require(userWhitelisted[user], mTokenGateway_UserNotWhitelisted());
         }
+        _;
+    }
+
+    modifier ifNotBlacklisted(address user) {
+        require (!blacklistOperator.isBlacklisted(user), mTokenGateway_UserBlacklisted());
         _;
     }
 
@@ -223,6 +237,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         override
         notPaused(OperationType.AmountIn)
         onlyAllowedUser(msg.sender)
+        ifNotBlacklisted(msg.sender)
+        ifNotBlacklisted(receiver)
     {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
@@ -251,6 +267,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
         external
         notPaused(OperationType.AmountOutHere)
+        ifNotBlacklisted(msg.sender)
+        ifNotBlacklisted(receiver)
     {
         // verify received data
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {

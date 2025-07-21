@@ -392,7 +392,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
-            address timelock = _deployTimelock(owner);
+            _deployTimelock(owner);
 
             deployPauser = new DeployPauser();
 
@@ -696,7 +696,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         address operator,
         address market,
         uint256 collateralFactor,
-        uint256 reserveFactor,
+        uint256,
         uint256 liquidationBonus,
         uint256 borrowCap,
         uint256 supplyCap,

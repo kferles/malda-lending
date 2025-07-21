@@ -25,6 +25,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
@@ -40,12 +41,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         _disableInitializers();
     }
 
-    function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer {
+    function initialize(address _rolesOperator, address _blacklistOperator, address _rewardDistributor, address _admin) public initializer {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
+        require(_blacklistOperator != address(0), Operator_InvalidBlacklistOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
         require(_admin != address(0), Operator_InvalidInput());
         __Ownable_init(_admin);
         rolesOperator = IRoles(_rolesOperator);
+        blacklistOperator = IBlacklister(_blacklistOperator);
         rewardDistributor = _rewardDistributor;
         outflowResetTimeWindow = 1 hours;
         lastOutflowResetTimestamp = block.timestamp;
@@ -59,6 +62,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         _;
     }
 
+    modifier ifNotBlacklisted(address user) {
+        require (!blacklistOperator.isBlacklisted(user), Operator_UserBlacklisted());
+        _;
+    }
 
     // ----------- OWNER ------------
     /**
@@ -556,12 +563,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user){}
+    function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user) ifNotBlacklisted(user) {}
 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user){}
+    function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user) ifNotBlacklisted(user) {}
 
     /**
      * @inheritdoc IOperatorDefender
@@ -573,7 +580,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override {
+    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
@@ -588,7 +595,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) {
+    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
@@ -613,7 +620,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @inheritdoc IOperatorDefender
      */
 
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) {
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) {
         _beforeRedeem(mToken, redeemer, redeemTokens);
 
         // Keep the flywheel moving
@@ -624,7 +631,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) {
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) {
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
@@ -674,7 +681,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         address mTokenCollateral,
         address borrower,
         uint256 repayAmount
-    ) external view override onlyAllowedUser(borrower) {
+    ) external view override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) {
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
@@ -699,6 +706,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
         external
         override
+        ifNotBlacklisted(liquidator)
+        ifNotBlacklisted(borrower)
     {
         require(
             !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],

@@ -37,6 +37,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(weth),
             address(roles),
+            address(blacklister),
             address(zkVerifier)
         );
         ERC1967Proxy mWethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), mWethGatewayInitData);
@@ -48,6 +49,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(usdc),
             address(roles),
+            address(blacklister),
             address(zkVerifier)
         );
         ERC1967Proxy mUsdcGatewayProxy = new ERC1967Proxy(address(gatewayImpl), mUsdcGatewayInitData);
