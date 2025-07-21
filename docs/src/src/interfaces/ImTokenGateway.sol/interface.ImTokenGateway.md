@@ -1,15 +1,24 @@
 # ImTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\interfaces\ImTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
 ### rolesOperator
 
-Roles manager
+Roles
 
 
 ```solidity
 function rolesOperator() external view returns (IRoles);
+```
+
+### blacklistOperator
+
+Blacklist
+
+
+```solidity
+function blacklistOperator() external view returns (IBlacklister);
 ```
 
 ### underlying
@@ -58,15 +67,6 @@ Returns accumulated amount out per user
 
 ```solidity
 function accAmountOut(address user) external view returns (uint256);
-```
-
-### isCallerAllowed
-
-Returns if a caller is allowed for sender
-
-
-```solidity
-function isCallerAllowed(address sender, address caller) external view returns (bool);
 ```
 
 ### getProofData
@@ -370,5 +370,13 @@ Thrown when user is not whitelisted
 
 ```solidity
 error mTokenGateway_UserNotWhitelisted();
+```
+
+### mTokenGateway_UserBlacklisted
+Thrown when user is blacklisted
+
+
+```solidity
+error mTokenGateway_UserBlacklisted();
 ```
 

@@ -1,15 +1,15 @@
 # EverclearBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\rebalancer\bridges\EverclearBridge.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\rebalancer\bridges\EverclearBridge.sol)
 
 **Inherits:**
 [BaseBridge](/src\rebalancer\bridges\BaseBridge.sol\abstract.BaseBridge.md), [IBridge](/src\interfaces\IBridge.sol\interface.IBridge.md)
 
 
 ## State Variables
-### everclearSpoke
+### everclearFeeAdapter
 
 ```solidity
-IEverclearSpoke public everclearSpoke;
+IFeeAdapter public everclearFeeAdapter;
 ```
 
 
@@ -18,7 +18,7 @@ IEverclearSpoke public everclearSpoke;
 
 
 ```solidity
-constructor(address _roles, address _spoke) BaseBridge(_roles);
+constructor(address _roles, address _feeAdapter) BaseBridge(_roles);
 ```
 
 ### getFee
@@ -40,8 +40,6 @@ function getFee(uint32, bytes memory, bytes memory) external pure returns (uint2
 
 ### sendMsg
 
-rebalance through bridge
-
 
 ```solidity
 function sendMsg(
@@ -53,17 +51,13 @@ function sendMsg(
     bytes memory
 ) external payable onlyRebalancer;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`_extractedAmount`|`uint256`|extracted amount for rebalancing|
-|`_market`|`address`|destination address|
-|`_dstChainId`|`uint32`|destination chain id|
-|`_token`|`address`|the token to rebalance|
-|`_message`|`bytes`|operation message data|
-|`<none>`|`bytes`||
+### _decodeIntent
 
+
+```solidity
+function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory);
+```
 
 ## Events
 ### MsgSent
@@ -72,7 +66,19 @@ function sendMsg(
 event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
 ```
 
+### RebalancingReturnedToMarket
+
+```solidity
+event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
+```
+
 ## Errors
+### Everclear_TokenMismatch
+
+```solidity
+error Everclear_TokenMismatch();
+```
+
 ### Everclear_NotImplemented
 
 ```solidity
@@ -83,5 +89,34 @@ error Everclear_NotImplemented();
 
 ```solidity
 error Everclear_AddressNotValid();
+```
+
+### Everclear_DestinationNotValid
+
+```solidity
+error Everclear_DestinationNotValid();
+```
+
+### Everclear_DestinationsLengthMismatch
+
+```solidity
+error Everclear_DestinationsLengthMismatch();
+```
+
+## Structs
+### IntentParams
+
+```solidity
+struct IntentParams {
+    uint32[] destinations;
+    bytes32 receiver;
+    address inputAsset;
+    bytes32 outputAsset;
+    uint256 amount;
+    uint24 maxFee;
+    uint48 ttl;
+    bytes data;
+    IFeeAdapter.FeeParams feeParams;
+}
 ```
 

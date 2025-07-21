@@ -1,5 +1,5 @@
 # mToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\mToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\mToken\mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), ReentrancyGuard
@@ -39,13 +39,6 @@ function _initializeMToken(
 |`symbol_`|`string`|EIP-20 symbol of this token|
 |`decimals_`|`uint8`|EIP-20 decimal precision of this token|
 
-
-### isMToken
-
-
-```solidity
-function isMToken() external pure override returns (bool);
-```
 
 ### allowance
 

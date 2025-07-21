@@ -120,13 +120,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     /**
      * @inheritdoc ImTokenGateway
      */
-    function isCallerAllowed(address sender, address caller) external view returns (bool) {
-        return allowedCallers[sender][caller];
-    }
-
-    /**
-     * @inheritdoc ImTokenGateway
-     */
     function getProofData(address user, uint32) external view returns (uint256, uint256) {
         return (accAmountIn[user], accAmountOut[user]);
     }

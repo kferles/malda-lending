@@ -2,9 +2,10 @@
 pragma solidity =0.8.28;
 
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
+import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 
-import "forge-std/console.sol";
+import "forge-std/console2.sol";
 
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
     function setUp() public override {

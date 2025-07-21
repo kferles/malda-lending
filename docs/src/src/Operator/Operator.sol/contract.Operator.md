@@ -1,5 +1,5 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\Operator\Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\Operator\Operator.sol)
 
 **Inherits:**
 [OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md), OwnableUpgradeable
@@ -20,7 +20,9 @@ constructor();
 
 
 ```solidity
-function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
+function initialize(address _rolesOperator, address _blacklistOperator, address _rewardDistributor, address _admin)
+    public
+    initializer;
 ```
 
 ### onlyAllowedUser
@@ -28,6 +30,13 @@ function initialize(address _rolesOperator, address _rewardDistributor, address 
 
 ```solidity
 modifier onlyAllowedUser(address user);
+```
+
+### ifNotBlacklisted
+
+
+```solidity
+modifier ifNotBlacklisted(address user);
 ```
 
 ### setWhitelistedUser
@@ -561,36 +570,6 @@ Returns USD value for all markets
 function getUSDValueForAllMarkets() external view returns (uint256);
 ```
 
-### beforeWithdrawOnExtension
-
-Checks whitelist status on withdrawOnExtension
-
-
-```solidity
-function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
-
-
-### beforeBorrowOnExtension
-
-Checks whitelist status on borrowOnExtension
-
-
-```solidity
-function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
-
-
 ### beforeRebalancing
 
 Checks if the account should be allowed to rebalance tokens
@@ -612,7 +591,11 @@ Checks if the account should be allowed to transfer tokens in the given market
 
 
 ```solidity
-function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override;
+function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens)
+    external
+    override
+    ifNotBlacklisted(src)
+    ifNotBlacklisted(dst);
 ```
 **Parameters**
 
@@ -630,7 +613,11 @@ Checks if the account should be allowed to mint tokens in the given market
 
 
 ```solidity
-function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter);
+function beforeMTokenMint(address mToken, address minter)
+    external
+    override
+    onlyAllowedUser(minter)
+    ifNotBlacklisted(minter);
 ```
 **Parameters**
 
@@ -664,7 +651,8 @@ Checks if the account should be allowed to redeem tokens in the given market
 function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
     external
     override
-    onlyAllowedUser(redeemer);
+    onlyAllowedUser(redeemer)
+    ifNotBlacklisted(redeemer);
 ```
 **Parameters**
 
@@ -684,7 +672,8 @@ Checks if the account should be allowed to borrow the underlying asset of the gi
 function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
     external
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 ```
 **Parameters**
 
@@ -721,7 +710,8 @@ function beforeMTokenLiquidate(address mTokenBorrowed, address mTokenCollateral,
     external
     view
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 ```
 **Parameters**
 
@@ -741,7 +731,9 @@ Checks if the seizing of assets should be allowed to occur
 ```solidity
 function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
     external
-    override;
+    override
+    ifNotBlacklisted(liquidator)
+    ifNotBlacklisted(borrower);
 ```
 **Parameters**
 

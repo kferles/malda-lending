@@ -179,7 +179,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      */
     function supportMarket(address mToken) external onlyOwner {
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
-        require(ImToken(mToken).isMToken(), Operator_WrongMarket());
 
         // Note that isMalded is not in active use anymore
         IOperatorData.Market storage newMarket = markets[mToken];
@@ -231,7 +230,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @param amount The new limit
      */    
     function checkOutflowVolumeLimit(uint256 amount) external {
-        require(ImToken(msg.sender).isMToken(), Operator_WrongMarket());
         require(markets[msg.sender].isListed, Operator_MarketNotListed());
 
         // skip this check in case limit is disabled ( = 0)
@@ -559,16 +557,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         }
         return sum;
     }
-
-    /**
-     * @inheritdoc IOperatorDefender
-     */
-    function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user) ifNotBlacklisted(user) {}
-
-    /**
-     * @inheritdoc IOperatorDefender
-     */
-    function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user) ifNotBlacklisted(user) {}
 
     /**
      * @inheritdoc IOperatorDefender

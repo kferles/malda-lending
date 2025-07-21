@@ -1,5 +1,5 @@
 # OperatorStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\Operator\OperatorStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\Operator\OperatorStorage.sol)
 
 **Inherits:**
 [IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [IOperatorDefender](/src\interfaces\IOperator.sol\interface.IOperatorDefender.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -7,11 +7,20 @@
 
 ## State Variables
 ### rolesOperator
-Roles manager
+Roles
 
 
 ```solidity
 IRoles public rolesOperator;
+```
+
+
+### blacklistOperator
+Blacklist
+
+
+```solidity
+IBlacklister public blacklistOperator;
 ```
 
 
@@ -384,6 +393,12 @@ error Operator_OnlyAdminOrRole();
 error Operator_MarketNotListed();
 ```
 
+### Operator_UserBlacklisted
+
+```solidity
+error Operator_UserBlacklisted();
+```
+
 ### Operator_PriceFetchFailed
 
 ```solidity
@@ -448,6 +463,12 @@ error Operator_MarketBorrowCapReached();
 
 ```solidity
 error Operator_InvalidCollateralFactor();
+```
+
+### Operator_InvalidBlacklistOperator
+
+```solidity
+error Operator_InvalidBlacklistOperator();
 ```
 
 ### Operator_InvalidRewardDistributor

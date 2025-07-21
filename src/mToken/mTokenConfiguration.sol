@@ -33,20 +33,11 @@ import {mTokenStorage} from "./mTokenStorage.sol";
 abstract contract mTokenConfiguration is mTokenStorage {
     // ----------- MODIFIERS ------------
     modifier onlyAdmin() {
-        require(msg.sender == admin, mToken_OnlyAdmin());
+        require(msg.sender == admin, mt_OnlyAdmin());
         _;
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Sets a new same chain flow state
-     */
-    function setSameChainFlowState(bool _newState) external onlyAdmin {
-        if (sameChainFlowStateDisabled == _newState) return;
-        emit SameChainFlowStateUpdated(msg.sender, sameChainFlowStateDisabled, _newState);
-        sameChainFlowStateDisabled = _newState;
-    }
-
     /**
      * @notice Sets a new Operator for the market
      * @dev Admin function to set a new operator
@@ -60,7 +51,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @dev Admin function to set a new operator
      */
     function setRolesOperator(address _roles) external onlyAdmin {
-        require(_roles != address(0), mToken_InvalidInput());
+        require(_roles != address(0), mt_InvalidInput());
 
         emit NewRolesOperator(address(rolesOperator), _roles);
 
@@ -97,7 +88,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
     function setReserveFactor(uint256 newReserveFactorMantissa) external onlyAdmin {
         _accrueInterest();
 
-        require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mToken_ReserveFactorTooHigh());
+        require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mt_ReserveFactorTooHigh());
 
         emit NewReserveFactor(reserveFactorMantissa, newReserveFactorMantissa);
         reserveFactorMantissa = newReserveFactorMantissa;
@@ -109,10 +100,6 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @param newPendingAdmin New pending admin.
      */
     function setPendingAdmin(address payable newPendingAdmin) external onlyAdmin {
-        // Emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin)
-        emit NewPendingAdmin(pendingAdmin, newPendingAdmin);
-
-        // Store pendingAdmin with value newPendingAdmin
         pendingAdmin = newPendingAdmin;
     }
 
@@ -122,20 +109,13 @@ abstract contract mTokenConfiguration is mTokenStorage {
      */
     function acceptAdmin() external {
         // Check caller is pendingAdmin
-        require(msg.sender == pendingAdmin, mToken_OnlyAdmin());
-
-        // Save current values for inclusion in log
-        address oldAdmin = admin;
-        address oldPendingAdmin = pendingAdmin;
+        require(msg.sender == pendingAdmin, mt_OnlyAdmin());
 
         // Store admin with value pendingAdmin
         admin = pendingAdmin;
 
         // Clear the pending value
         pendingAdmin = payable(address(0));
-
-        emit NewAdmin(oldAdmin, admin);
-        emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
     }
 
     // ----------- INTERNAL ------------
@@ -146,14 +126,14 @@ abstract contract mTokenConfiguration is mTokenStorage {
      */
     function _setInterestRateModel(address newInterestRateModel) internal {
         // Ensure invoke newInterestRateModel.isInterestRateModel() returns true
-        require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mToken_MarketMethodNotValid());
+        require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mt_MarketMethodNotValid());
 
         emit NewMarketInterestRateModel(interestRateModel, newInterestRateModel);
         interestRateModel = newInterestRateModel;
     }
 
     function _setOperator(address _operator) internal {
-        require(IOperator(_operator).isOperator(), mToken_MarketMethodNotValid());
+        require(IOperator(_operator).isOperator(), mt_MarketMethodNotValid());
 
         emit NewOperator(operator, _operator);
 

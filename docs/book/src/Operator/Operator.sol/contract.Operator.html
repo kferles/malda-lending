@@ -44,17 +44,6 @@
         <script src="../../../toc.js"></script>
     </head>
     <body>
-    <div id="mdbook-help-container">
-        <div id="mdbook-help-popup">
-            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
-            <div>
-                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
-                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
-                <p>Press <kbd>?</kbd> to show this help</p>
-                <p>Press <kbd>Esc</kbd> to hide this help</p>
-            </div>
-        </div>
-    </div>
     <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
@@ -132,7 +121,7 @@
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -173,7 +162,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src%5COperator%5COperator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
@@ -183,10 +172,15 @@ oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor();
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
-<pre><code class="language-solidity">function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
+<pre><code class="language-solidity">function initialize(address _rolesOperator, address _blacklistOperator, address _rewardDistributor, address _admin)
+    public
+    initializer;
 </code></pre>
 <h3 id="onlyalloweduser"><a class="header" href="#onlyalloweduser">onlyAllowedUser</a></h3>
 <pre><code class="language-solidity">modifier onlyAllowedUser(address user);
+</code></pre>
+<h3 id="ifnotblacklisted"><a class="header" href="#ifnotblacklisted">ifNotBlacklisted</a></h3>
+<pre><code class="language-solidity">modifier ifNotBlacklisted(address user);
 </code></pre>
 <h3 id="setwhitelisteduser"><a class="header" href="#setwhitelisteduser">setWhitelistedUser</a></h3>
 <p>Sets user whitelist status</p>
@@ -510,24 +504,6 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p>Returns USD value for all markets</p>
 <pre><code class="language-solidity">function getUSDValueForAllMarkets() external view returns (uint256);
 </code></pre>
-<h3 id="beforewithdrawonextension"><a class="header" href="#beforewithdrawonextension">beforeWithdrawOnExtension</a></h3>
-<p>Checks whitelist status on withdrawOnExtension</p>
-<pre><code class="language-solidity">function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>user</code></td><td><code>address</code></td><td>The user to check</td></tr>
-</tbody></table>
-</div>
-<h3 id="beforeborrowonextension"><a class="header" href="#beforeborrowonextension">beforeBorrowOnExtension</a></h3>
-<p>Checks whitelist status on borrowOnExtension</p>
-<pre><code class="language-solidity">function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>user</code></td><td><code>address</code></td><td>The user to check</td></tr>
-</tbody></table>
-</div>
 <h3 id="beforerebalancing"><a class="header" href="#beforerebalancing">beforeRebalancing</a></h3>
 <p>Checks if the account should be allowed to rebalance tokens</p>
 <pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override;
@@ -539,7 +515,11 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokentransfer"><a class="header" href="#beforemtokentransfer">beforeMTokenTransfer</a></h3>
 <p>Checks if the account should be allowed to transfer tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override;
+<pre><code class="language-solidity">function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens)
+    external
+    override
+    ifNotBlacklisted(src)
+    ifNotBlacklisted(dst);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -551,7 +531,11 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenmint"><a class="header" href="#beforemtokenmint">beforeMTokenMint</a></h3>
 <p>Checks if the account should be allowed to mint tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter);
+<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter)
+    external
+    override
+    onlyAllowedUser(minter)
+    ifNotBlacklisted(minter);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -573,7 +557,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
     external
     override
-    onlyAllowedUser(redeemer);
+    onlyAllowedUser(redeemer)
+    ifNotBlacklisted(redeemer);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -587,7 +572,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
     external
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -612,7 +598,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
     external
     view
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -626,7 +613,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p>Checks if the seizing of assets should be allowed to occur</p>
 <pre><code class="language-solidity">function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
     external
-    override;
+    override
+    ifNotBlacklisted(liquidator)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -703,7 +692,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../../src/Operator/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../../src/Operator/EmptyOperator.sol/contract.EmptyOperator.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -717,7 +706,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../../src/Operator/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../../src/Operator/EmptyOperator.sol/contract.EmptyOperator.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

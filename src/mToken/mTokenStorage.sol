@@ -116,11 +116,6 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 public borrowRateMaxMantissa = 0.0005e16;
 
     /**
-     * @inheritdoc ImToken
-     */
-    bool public sameChainFlowStateDisabled;
-
-    /**
      * @notice Container for borrow balance information
      * @member principal Total balance (with accrued interest), after applying the most recent balance-changing action
      * @member interestIndex Global borrowIndex as of the most recent balance-changing action
@@ -155,40 +150,30 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16; //2.8%
 
     // ----------- ERRORS ------------
-    error mToken_OnlyAdmin();
-    error mToken_RedeemEmpty();
-    error mToken_InvalidInput();
-    error mToken_OnlyAdminOrRole();
-    error mToken_TransferNotValid();
-    error mToken_MinAmountNotValid();
-    error mToken_BorrowRateTooHigh();
-    error mToken_AlreadyInitialized();
-    error mToken_ReserveFactorTooHigh();
-    error mToken_ExchangeRateNotValid();
-    error mToken_MarketMethodNotValid();
-    error mToken_LiquidateSeizeTooMuch();
-    error mToken_RedeemCashNotAvailable();
-    error mToken_BorrowCashNotAvailable();
-    error mToken_ReserveCashNotAvailable();
-    error mToken_RedeemTransferOutNotPossible();
-    error mToken_SameChainOperationsAreDisabled();
-    error mToken_CollateralBlockTimestampNotValid();
+    error mt_OnlyAdmin();
+    error mt_RedeemEmpty();
+    error mt_InvalidInput();
+    error mt_OnlyAdminOrRole();
+    error mt_TransferNotValid();
+    error mt_MinAmountNotValid();
+    error mt_BorrowRateTooHigh();
+    error mt_AlreadyInitialized();
+    error mt_ReserveFactorTooHigh();
+    error mt_ExchangeRateNotValid();
+    error mt_MarketMethodNotValid();
+    error mt_LiquidateSeizeTooMuch();
+    error mt_RedeemCashNotAvailable();
+    error mt_BorrowCashNotAvailable();
+    error mt_ReserveCashNotAvailable();
+    error mt_RedeemTransferOutNotPossible();
+    error mt_SameChainOperationsAreDisabled();
+    error mt_CollateralBlockTimestampNotValid();
 
     // ----------- ACCESS EVENTS ------------
     /**
      * @notice Event emitted when rolesOperator is changed
      */
     event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
-
-    /**
-     * @notice Event emitted when pendingAdmin is changed
-     */
-    event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-
-    /**
-     * @notice Event emitted when pendingAdmin is accepted, which means admin is updated
-     */
-    event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
 
     /**
      * @notice Event emitted when Operator is changed
@@ -367,7 +352,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         uint256 borrowRateMantissa =
             IInterestRateModel(interestRateModel).getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
         if (borrowRateMaxMantissa > 0) {
-            require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
+            require(borrowRateMantissa <= borrowRateMaxMantissa, mt_BorrowRateTooHigh());
         }
 
         /* Calculate the number of blocks elapsed since the last accrual */

@@ -1,5 +1,5 @@
 # IOperatorDefender
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\interfaces\IOperator.sol)
 
 
 ## Functions
@@ -171,35 +171,5 @@ function checkOutflowVolumeLimit(uint256 amount) external;
 |Name|Type|Description|
 |----|----|-----------|
 |`amount`|`uint256`|New amount|
-
-
-### beforeWithdrawOnExtension
-
-Checks whitelist status on withdrawOnExtension
-
-
-```solidity
-function beforeWithdrawOnExtension(address user) external view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
-
-
-### beforeBorrowOnExtension
-
-Checks whitelist status on borrowOnExtension
-
-
-```solidity
-function beforeBorrowOnExtension(address user) external view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user to check|
 
 

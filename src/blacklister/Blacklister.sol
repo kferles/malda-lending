@@ -21,23 +21,19 @@ pragma solidity =0.8.28;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 
 
-contract Blacklister is OwnableUpgradeable {
+contract Blacklister is OwnableUpgradeable, IBlacklister {
     // ----------- STORAGE -----------
     mapping(address => bool) public isBlacklisted;
-    address[] blacklistedAddresses;
     mapping(address => bool) public proposedForBlacklist;
     mapping(address => uint256) public blacklistProposalTimestamp;
     uint256 public proposalExpiryTime = 3 days;
+    
+    address[] private _blacklistedList;
 
     IRoles public rolesOperator;
-
-    // ----------- EVENTS -----------
-    event Blacklisted(address indexed user);
-    event Unblacklisted(address indexed user);
-    event BlacklistProposed(address indexed user);
-    event BlacklistProposalExpiry(uint256 newVal);
 
     // ----------- ERRORS -----------
     error Blacklister_AlreadyBlacklisted();
@@ -62,7 +58,7 @@ contract Blacklister is OwnableUpgradeable {
 
     // ----------- VIEW ------------
     function getBlacklistedAddresses() external view returns (address[] memory) {
-        return blacklistedAddresses;
+        return _blacklistedList;
     }
 
     function isProposalExpired(address user) public view returns (bool) {
@@ -72,57 +68,66 @@ contract Blacklister is OwnableUpgradeable {
 
     
     // ----------- OWNER ------------
-    function blacklist(address user) external onlyOwner {
-        require(!isBlacklisted[user], Blacklister_AlreadyBlacklisted());
-        isBlacklisted[user] = true;
-        blacklistedAddresses.push(user);
-        proposedForBlacklist[user] = false;
-        blacklistProposalTimestamp[user] = 0;
-        emit Blacklisted(user);
+    function blacklist(address user) external override onlyOwner {
+        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
+        _resetProposal(user);
+        _addToBlacklist(user);
     }
 
-    function unblacklist(address user) external onlyOwner {
-        require(isBlacklisted[user], Blacklister_NotBlacklisted());
+    function unblacklist(address user) external override onlyOwner {
+        if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
         isBlacklisted[user] = false;
-        uint256 len = blacklistedAddresses.length;
-        for (uint256 i; i < len; ++i) {
-            if (blacklistedAddresses[i] == user) {
-                blacklistedAddresses[i] = blacklistedAddresses[len - 1];
-                blacklistedAddresses.pop();
-                break;
-            }
-        }
-        proposedForBlacklist[user] = false;
-        blacklistProposalTimestamp[user] = 0;
+        _removeFromBlacklistList(user);
+        _resetProposal(user);
         emit Unblacklisted(user);
     }
 
-    function proposeToBlacklist(address user) external {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST())) revert Blacklister_NotAllowed();
-        require(!isBlacklisted[user], Blacklister_AlreadyBlacklisted());
-        require(!proposedForBlacklist[user], Blacklister_AlreadyProposed());
-        blacklistProposalTimestamp[user] = block.timestamp;
-        proposedForBlacklist[user] = true;
-        emit BlacklistProposed(user);
-    }
-
-    function approveBlacklist(address user) external onlyOwner {
-        require(proposedForBlacklist[user], Blacklister_NotProposed());
-        require(!isBlacklisted[user], Blacklister_AlreadyBlacklisted());
-        if (block.timestamp > blacklistProposalTimestamp[user] + proposalExpiryTime) {
-            revert Blacklister_ProposalExpired();
-        }
-
-        proposedForBlacklist[user] = false;
-        blacklistProposalTimestamp[user] = 0;
-        isBlacklisted[user] = true;
-        blacklistedAddresses.push(user);
-
-        emit Blacklisted(user);
+    function approveBlacklist(address user) external override onlyOwner {
+        if (!proposedForBlacklist[user]) revert Blacklister_NotProposed();
+        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
+        if (isProposalExpired(user)) revert Blacklister_ProposalExpired();
+        _resetProposal(user);
+        _addToBlacklist(user);
     }
 
     function setProposalExpiry(uint256 expiry) external onlyOwner {
         proposalExpiryTime = expiry;
         emit BlacklistProposalExpiry(expiry);
+    }
+    // ----------- GUARDIAN ------------
+    function proposeToBlacklist(address user) external override {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST())) {
+            revert Blacklister_NotAllowed();
+        }
+        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
+        if (proposedForBlacklist[user]) revert Blacklister_AlreadyProposed();
+
+        proposedForBlacklist[user] = true;
+        blacklistProposalTimestamp[user] = block.timestamp;
+        emit BlacklistProposed(user);
+    }
+
+   
+    // ----------- INTERNAL ------------
+    function _resetProposal(address user) internal {
+        proposedForBlacklist[user] = false;
+        blacklistProposalTimestamp[user] = 0;
+    }
+
+    function _addToBlacklist(address user) internal {
+        isBlacklisted[user] = true;
+        _blacklistedList.push(user);
+        emit Blacklisted(user);
+    }
+    
+    function _removeFromBlacklistList(address user) internal {
+        uint256 len = _blacklistedList.length;
+        for (uint256 i; i < len; ++i) {
+            if (_blacklistedList[i] == user) {
+                _blacklistedList[i] = _blacklistedList[len - 1];
+                _blacklistedList.pop();
+                break;
+            }
+        }
     }
 }
