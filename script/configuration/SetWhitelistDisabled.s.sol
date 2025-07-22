@@ -4,14 +4,14 @@ pragma solidity =0.8.28;
 import {mErc20Host} from "../../src/mToken/host/mErc20Host.sol";
 import {Script, console} from "forge-std/Script.sol";
 
-
 interface IEnable {
     function enableWhitelist() external;
     function disableWhitelist() external;
 }
+
 contract SetWhitelistDisabled is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         address[] memory markets = new address[](7);
         markets[0] = 0x269C36A173D881720544Fb303E681370158FF1FD;
@@ -22,7 +22,7 @@ contract SetWhitelistDisabled is Script {
         markets[5] = 0x8BaD0c523516262a439197736fFf982F5E0987cC;
         markets[6] = 0x4DF3DD62DB219C47F6a7CB1bE02C511AFceAdf5E;
 
-        for(uint256 i; i < markets.length; i++) {
+        for (uint256 i; i < markets.length; i++) {
             address market = markets[i];
             vm.startBroadcast(key);
             IEnable(market).disableWhitelist();

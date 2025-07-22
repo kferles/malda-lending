@@ -56,6 +56,5 @@ abstract contract mErc20Upgradable is mErc20, Initializable {
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );
         admin = admin_;
-    }  
-
+    }
 }

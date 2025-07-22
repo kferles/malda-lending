@@ -1,18 +1,11 @@
 # mErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\host\mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\host\mErc20Host.sol)
 
 **Inherits:**
 [mErc20Upgradable](/src\mToken\mErc20Upgradable.sol\abstract.mErc20Upgradable.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
-### FLASH_MINT_CALLBACK_SUCCESS
-
-```solidity
-bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
-```
-
-
 ### migrator
 
 ```solidity
@@ -20,17 +13,10 @@ address public migrator;
 ```
 
 
-### accAmountInPerChain
+### acc
 
 ```solidity
-mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
-```
-
-
-### accAmountOutPerChain
-
-```solidity
-mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
+mapping(uint32 => Accumulated) internal acc;
 ```
 
 
@@ -48,17 +34,17 @@ mapping(uint32 => bool) public allowedChains;
 ```
 
 
-### gasFees
-
-```solidity
-mapping(uint32 => uint256) public gasFees;
-```
-
-
 ### verifier
 
 ```solidity
 IZkVerifier public verifier;
+```
+
+
+### gasHelper
+
+```solidity
+IGasFeesHelper public gasHelper;
 ```
 
 
@@ -104,15 +90,6 @@ function initialize(
 |`zkVerifier_`|`address`|The IZkVerifier address|
 |`roles_`|`address`||
 
-
-### isCallerAllowed
-
-Returns if a caller is allowed for sender
-
-
-```solidity
-function isCallerAllowed(address sender, address caller) external view returns (bool);
-```
 
 ### getProofData
 
@@ -169,20 +146,19 @@ function setMigrator(address _migrator) external onlyAdmin;
 |`_migrator`|`address`|The new migrator address|
 
 
-### setGasFee
+### setGasHelper
 
-Sets the gas fee
+Sets the gas fees helper address
 
 
 ```solidity
-function setGasFee(uint32 dstChainId, uint256 amount) external onlyAdmin;
+function setGasHelper(address _helper) external onlyAdmin;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`dstChainId`|`uint32`|the destination chain id|
-|`amount`|`uint256`|the gas fee amount|
+|`_helper`|`address`|The new helper address|
 
 
 ### withdrawGasFees
@@ -306,128 +282,126 @@ function repayExternal(
 |`receiver`|`address`|The position to repay for|
 
 
-### withdrawOnExtension
-
-Initiates a withdraw operation
-
-*amount represents the number of mTokens to redeem*
-
-
-```solidity
-function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount to withdraw|
-|`dstChainId`|`uint32`|The destination chain to recieve funds|
-
-
-### borrowOnExtension
+### performExtensionCall
 
 Initiates a withdraw operation
 
 
 ```solidity
-function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override;
+function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`actionType`|`uint256`|The actionType param (1 - withdraw, 2 - borrow)|
 |`amount`|`uint256`|The amount to withdraw|
 |`dstChainId`|`uint32`|The destination chain to recieve funds|
 
 
-### mintMigration
+### mintOrBorrowMigration
 
 Mints mTokens during migration without requiring underlying transfer
 
 
 ```solidity
-function mintMigration(uint256 amount, uint256 minAmount, address receiver) external onlyMigrator;
+function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+    external
+    onlyMigrator;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`mint`|`bool`|Mint or borrow|
 |`amount`|`uint256`|The amount of underlying to be accounted for|
-|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
-|`receiver`|`address`|The address that will receive the mTokens|
-
-
-### borrowMigration
-
-Borrows from market for a specific borrower and not `msg.sender`
-
-
-```solidity
-function borrowMigration(uint256 amount, address borrower, address receiver) external onlyMigrator;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`receiver`|`address`|The address that will receive the mTokens or the underlying in case of borrowing|
 |`borrower`|`address`|The address that borrow is executed for|
-|`receiver`|`address`||
+|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
 
 
-### _computeTotalOutflowAmount
+### _onlyAdminOrRole
 
 
 ```solidity
-function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256);
+function _onlyAdminOrRole(bytes32 _role) internal view;
+```
+
+### _decodeJournals
+
+
+```solidity
+function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory);
 ```
 
 ### _checkOutflow
 
 
 ```solidity
-function _checkOutflow(uint256 amount) private;
+function _checkOutflow(uint256 amount) internal;
 ```
 
-### _isAllowedFor
+### _checkProofCall
 
 
 ```solidity
-function _isAllowedFor(address _sender, bytes32 role) private view returns (bool);
-```
-
-### _getProofForwarderRole
-
-
-```solidity
-function _getProofForwarderRole() private view returns (bytes32);
-```
-
-### _getBatchProofForwarderRole
-
-
-```solidity
-function _getBatchProofForwarderRole() private view returns (bytes32);
-```
-
-### _getSequencerRole
-
-
-```solidity
-function _getSequencerRole() private view returns (bytes32);
-```
-
-### _verifyProof
-
-
-```solidity
-function _verifyProof(bytes calldata journalData, bytes calldata seal) private view;
+function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
 ```
 
 ### _checkSender
 
 
 ```solidity
-function _checkSender(address msgSender, address srcSender) private view;
+function _checkSender(address msgSender, address srcSender) internal view;
+```
+
+### _getGasFees
+
+
+```solidity
+function _getGasFees(uint32 dstChain) internal view returns (uint256);
+```
+
+### _isAllowedFor
+
+
+```solidity
+function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool);
+```
+
+### _getChainsManagerRole
+
+
+```solidity
+function _getChainsManagerRole() internal view returns (bytes32);
+```
+
+### _getProofForwarderRole
+
+
+```solidity
+function _getProofForwarderRole() internal view returns (bytes32);
+```
+
+### _getBatchProofForwarderRole
+
+
+```solidity
+function _getBatchProofForwarderRole() internal view returns (bytes32);
+```
+
+### _getSequencerRole
+
+
+```solidity
+function _getSequencerRole() internal view returns (bytes32);
+```
+
+### _verifyProof
+
+
+```solidity
+function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view;
 ```
 
 ### _liquidateExternal
@@ -456,5 +430,15 @@ function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 m
 
 ```solidity
 function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal;
+```
+
+## Structs
+### Accumulated
+
+```solidity
+struct Accumulated {
+    mapping(address => uint256) inPerChain;
+    mapping(address => uint256) outPerChain;
+}
 ```
 

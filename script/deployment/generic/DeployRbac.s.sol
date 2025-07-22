@@ -23,7 +23,7 @@ contract DeployRbac is Script {
         address created = _deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
             vm.stopBroadcast();
             console.log("Roles(Rbac) deployed at: %s", created);

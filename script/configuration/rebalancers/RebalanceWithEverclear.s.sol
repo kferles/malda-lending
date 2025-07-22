@@ -7,7 +7,7 @@ import {Script} from "forge-std/Script.sol";
 
 contract RebalanceWithEverclear is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
         Rebalancer rebalancer = Rebalancer(0xDB9b98b15960DBfd61e12f0d58E24482B80c06fe);

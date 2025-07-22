@@ -45,7 +45,7 @@ library mTokenProofDecoderLib {
             bool L1inclusion
         )
     {
-        require (journalData.length == ENTRY_SIZE, mTokenProofDecoderLib_InvalidLength());
+        require(journalData.length == ENTRY_SIZE, mTokenProofDecoderLib_InvalidLength());
 
         // decode action data
         // | Offset | Length | Data Type               |

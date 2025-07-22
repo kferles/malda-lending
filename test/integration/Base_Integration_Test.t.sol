@@ -18,7 +18,6 @@ import {Helpers} from "../utils/Helpers.sol";
 abstract contract Base_Integration_Test is Events, Helpers, Types {
     address public alice;
 
-
     // ----------- FORKS ------------
     uint256 public lineaFork;
     string public lineaUrl = vm.envString("LINEA_RPC_URL");

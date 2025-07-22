@@ -1,5 +1,5 @@
 # mTokenStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\mTokenStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\mTokenStorage.sol)
 
 **Inherits:**
 [ImToken](/src\interfaces\ImToken.sol\interface.ImToken.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -150,15 +150,6 @@ uint256 public borrowRateMaxMantissa = 0.0005e16;
 ```
 
 
-### sameChainFlowStateDisabled
-Returns true/false for same chain flow state disable status
-
-
-```solidity
-bool public sameChainFlowStateDisabled;
-```
-
-
 ### accountBorrows
 
 ```solidity
@@ -300,22 +291,6 @@ Event emitted when rolesOperator is changed
 event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
 ```
 
-### NewPendingAdmin
-Event emitted when pendingAdmin is changed
-
-
-```solidity
-event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-```
-
-### NewAdmin
-Event emitted when pendingAdmin is accepted, which means admin is updated
-
-
-```solidity
-event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
-```
-
 ### NewOperator
 Event emitted when Operator is changed
 
@@ -453,112 +428,112 @@ event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier
 ```
 
 ## Errors
-### mToken_OnlyAdmin
+### mt_OnlyAdmin
 
 ```solidity
-error mToken_OnlyAdmin();
+error mt_OnlyAdmin();
 ```
 
-### mToken_RedeemEmpty
+### mt_RedeemEmpty
 
 ```solidity
-error mToken_RedeemEmpty();
+error mt_RedeemEmpty();
 ```
 
-### mToken_InvalidInput
+### mt_InvalidInput
 
 ```solidity
-error mToken_InvalidInput();
+error mt_InvalidInput();
 ```
 
-### mToken_OnlyAdminOrRole
+### mt_OnlyAdminOrRole
 
 ```solidity
-error mToken_OnlyAdminOrRole();
+error mt_OnlyAdminOrRole();
 ```
 
-### mToken_TransferNotValid
+### mt_TransferNotValid
 
 ```solidity
-error mToken_TransferNotValid();
+error mt_TransferNotValid();
 ```
 
-### mToken_MinAmountNotValid
+### mt_MinAmountNotValid
 
 ```solidity
-error mToken_MinAmountNotValid();
+error mt_MinAmountNotValid();
 ```
 
-### mToken_BorrowRateTooHigh
+### mt_BorrowRateTooHigh
 
 ```solidity
-error mToken_BorrowRateTooHigh();
+error mt_BorrowRateTooHigh();
 ```
 
-### mToken_AlreadyInitialized
+### mt_AlreadyInitialized
 
 ```solidity
-error mToken_AlreadyInitialized();
+error mt_AlreadyInitialized();
 ```
 
-### mToken_ReserveFactorTooHigh
+### mt_ReserveFactorTooHigh
 
 ```solidity
-error mToken_ReserveFactorTooHigh();
+error mt_ReserveFactorTooHigh();
 ```
 
-### mToken_ExchangeRateNotValid
+### mt_ExchangeRateNotValid
 
 ```solidity
-error mToken_ExchangeRateNotValid();
+error mt_ExchangeRateNotValid();
 ```
 
-### mToken_MarketMethodNotValid
+### mt_MarketMethodNotValid
 
 ```solidity
-error mToken_MarketMethodNotValid();
+error mt_MarketMethodNotValid();
 ```
 
-### mToken_LiquidateSeizeTooMuch
+### mt_LiquidateSeizeTooMuch
 
 ```solidity
-error mToken_LiquidateSeizeTooMuch();
+error mt_LiquidateSeizeTooMuch();
 ```
 
-### mToken_RedeemCashNotAvailable
+### mt_RedeemCashNotAvailable
 
 ```solidity
-error mToken_RedeemCashNotAvailable();
+error mt_RedeemCashNotAvailable();
 ```
 
-### mToken_BorrowCashNotAvailable
+### mt_BorrowCashNotAvailable
 
 ```solidity
-error mToken_BorrowCashNotAvailable();
+error mt_BorrowCashNotAvailable();
 ```
 
-### mToken_ReserveCashNotAvailable
+### mt_ReserveCashNotAvailable
 
 ```solidity
-error mToken_ReserveCashNotAvailable();
+error mt_ReserveCashNotAvailable();
 ```
 
-### mToken_RedeemTransferOutNotPossible
+### mt_RedeemTransferOutNotPossible
 
 ```solidity
-error mToken_RedeemTransferOutNotPossible();
+error mt_RedeemTransferOutNotPossible();
 ```
 
-### mToken_SameChainOperationsAreDisabled
+### mt_SameChainOperationsAreDisabled
 
 ```solidity
-error mToken_SameChainOperationsAreDisabled();
+error mt_SameChainOperationsAreDisabled();
 ```
 
-### mToken_CollateralBlockTimestampNotValid
+### mt_CollateralBlockTimestampNotValid
 
 ```solidity
-error mToken_CollateralBlockTimestampNotValid();
+error mt_CollateralBlockTimestampNotValid();
 ```
 
 ## Structs

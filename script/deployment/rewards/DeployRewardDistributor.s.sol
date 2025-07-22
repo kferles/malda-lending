@@ -17,7 +17,7 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  */
 contract DeployRewardDistributor is Script {
     function run(Deployer deployer, address owner) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         bytes32 implSalt = getSalt("RewardDistributorV1.0.0");
         address implementation = deployer.precompute(implSalt);

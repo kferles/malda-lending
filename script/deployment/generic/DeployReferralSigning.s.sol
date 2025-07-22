@@ -15,7 +15,7 @@ contract DeployReferralSigning is Script {
         address created = _deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             created = _deployer.create(salt, type(ReferralSigning).creationCode);
             vm.stopBroadcast();
             console.log("ReferralSigning deployed at: %s", created);

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
@@ -18,43 +17,47 @@ import {IOwnable} from "src/interfaces/IOwnable.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
-} from "../deployers/Types.sol";
+    DeployConfig,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    OracleConfigRelease,
+    OracleFeed
+} from "../../deployers/Types.sol";
 
-import {DeployBaseRelease} from "../deployers/DeployBaseRelease.sol";
-import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
-import {DeployRbac} from "./generic/DeployRbac.s.sol";
-import {DeployZkVerifier} from "./generic/DeployZkVerifier.s.sol";
-import {DeployTimelockController} from "./generic/DeployTimelockController.s.sol";
-import {DeployPauser} from "./generic/DeployPauser.s.sol";
-import {DeployOperator} from "./markets/DeployOperator.s.sol";
-import {DeployHostMarket} from "./markets/host/DeployHostMarket.s.sol";
-import {DeployExtensionMarket} from "./markets/extension/DeployExtensionMarket.s.sol";
-import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
-import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
-import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
-import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
-import {DeployMockOracle} from "./oracles/DeployMockOracle.s.sol";
+import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
+import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
+import {DeployRbac} from "../generic/DeployRbac.s.sol";
+import {DeployZkVerifier} from "../generic/DeployZkVerifier.s.sol";
+import {DeployTimelockController} from "../generic/DeployTimelockController.s.sol";
+import {DeployPauser} from "../generic/DeployPauser.s.sol";
+import {DeployOperator} from "../markets/DeployOperator.s.sol";
+import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";
+import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.s.sol";
+import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
+import {DeployRewardDistributor} from "../rewards/DeployRewardDistributor.s.sol";
+import {DeployBatchSubmitter} from "../generic/DeployBatchSubmitter.s.sol";
+import {DeployMixedPriceOracleV3} from "../oracles/DeployMixedPriceOracleV3.s.sol";
+import {DeployMockOracle} from "../oracles/DeployMockOracle.s.sol";
 
-import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
-import {SetRole} from "../configuration/SetRole.s.sol";
-import {SetCollateralFactor} from "../configuration/SetCollateralFactor.s.sol";
-import {SetReserveFactor} from "../configuration/SetReserveFactor.s.sol";
-import {SetLiquidationBonus} from "../configuration/SetLiquidationBonus.s.sol";
-import {SupportMarket} from "../configuration/SupportMarket.s.sol";
-import {SetBorrowRateMaxMantissa} from "../configuration/SetBorrowRateMaxMantissa.s.sol";
-import {SetBorrowCap} from "../configuration/SetBorrowCap.s.sol";
-import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
-import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
+import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
+import {SetRole} from "../../configuration/SetRole.s.sol";
+import {SetCollateralFactor} from "../../configuration/SetCollateralFactor.s.sol";
+import {SetReserveFactor} from "../../configuration/SetReserveFactor.s.sol";
+import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol";
+import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
+import {SetBorrowRateMaxMantissa} from "../../configuration/SetBorrowRateMaxMantissa.s.sol";
+import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
+import {SetSupplyCap} from "../../configuration/SetSupplyCap.s.sol";
+import {UpdateAllowedChains} from "../../configuration/UpdateAllowedChains.s.sol";
 
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
-import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
-
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
 import "forge-std/console2.sol";
+
 contract DeployProtocolRelease is DeployBaseRelease {
     using stdJson for string;
 
@@ -69,12 +72,12 @@ contract DeployProtocolRelease is DeployBaseRelease {
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
-    mapping(string=>uint256) public collateralFactors;
-    mapping(string=>uint256) public reserveFactors;
-    mapping(string=>uint256) public liquidationBonuses;
-    mapping(string=>uint256) public borrowCaps;
+    mapping(string => uint256) public collateralFactors;
+    mapping(string => uint256) public reserveFactors;
+    mapping(string => uint256) public liquidationBonuses;
+    mapping(string => uint256) public borrowCaps;
 
-    mapping(string=>MarketRelease) public fullConfigs;
+    mapping(string => MarketRelease) public fullConfigs;
 
     address public batchSubmitter;
 
@@ -103,7 +106,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
     DeployRebalancer deployRebalancer;
     DeployAcrossBridge deployAcrossBridge;
     DeployEverclearBridge deployEverclearBridge;
-    DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
     DeployTimelockController deployTimelockController;
 
@@ -151,14 +153,14 @@ contract DeployProtocolRelease is DeployBaseRelease {
         collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
-        reserveFactors["mUSDC"] =   100000000000000000;
-        reserveFactors["mWETH"] =   150000000000000000;
-        reserveFactors["mUSDT"] =   100000000000000000;
-        reserveFactors["mDAI"] =    100000000000000000;
-        reserveFactors["mWBTC"] =   500000000000000000;
+        reserveFactors["mUSDC"] = 100000000000000000;
+        reserveFactors["mWETH"] = 150000000000000000;
+        reserveFactors["mUSDT"] = 100000000000000000;
+        reserveFactors["mDAI"] = 100000000000000000;
+        reserveFactors["mWBTC"] = 500000000000000000;
         reserveFactors["mwstETH"] = 50000000000000000;
-        reserveFactors["mezETH"] =  450000000000000000;
-        reserveFactors["mweETH"] =  450000000000000000;
+        reserveFactors["mezETH"] = 450000000000000000;
+        reserveFactors["mweETH"] = 450000000000000000;
         reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
@@ -341,7 +343,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
             liquidationBonus: liquidationBonuses["mwrsETH"]
         });
 
-
         spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
         spokePoolAddresses[10] = 0x6f26Bf09B1C792e3228e5467807a900A503c0281;
         spokePoolAddresses[8453] = 0x09aea4b2242abC8bb4BB78D537A67a245A7bEC64;
@@ -386,8 +387,10 @@ contract DeployProtocolRelease is DeployBaseRelease {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
-            
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
+
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
             _deployTimelock(owner);
@@ -422,12 +425,11 @@ contract DeployProtocolRelease is DeployBaseRelease {
             deployRebalancer = new DeployRebalancer();
             deployAcrossBridge = new DeployAcrossBridge();
             deployEverclearBridge = new DeployEverclearBridge();
-            deployLZBridge = new DeployLZBridge();
             //_deployAndConfigRebalancerAndBridges(network, rolesContract);
 
             // Transfer ownerhip
             // console.log("Transfer ownership to", configs[network].ownership);
-            // uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+            // uint256 key = vm.envUint("PRIVATE_KEY");
             // vm.startBroadcast(key);
 
             // console.log(" -- for ZkVerifier");
@@ -469,9 +471,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
         address everclearBridge =
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
-        console.log(" --- Deploying lzBridge");
-        address lzBridge = deployLZBridge.run(rolesContract, deployer);
-        console.log(" --- Deployed lzBridge at ", lzBridge);
 
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
         setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
@@ -498,7 +497,9 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
-            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, pauser, _zkVerifier);
+            _deployAndConfigureMarket(
+                true, configs[network].markets[i], operator, rolesContract, network, pauser, _zkVerifier
+            );
             unchecked {
                 ++i;
             }
@@ -517,7 +518,9 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, pauser, _zkVerifier);
+            _deployAndConfigureMarket(
+                false, configs[network].markets[i], address(0), rolesContract, network, pauser, _zkVerifier
+            );
             unchecked {
                 ++i;
             }
@@ -542,7 +545,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             market = fullConfigs[market.name];
             interestModel = _deployInterestModel(market.interestModel);
         }
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         // Deploy proxy for market
         if (isHost) {
@@ -559,9 +562,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             console.log(" --- borrowCap %s", market.borrowCap);
             console.log(" --- _zkVerifier %s", _zkVerifier);
             console.log(" --- rolesContract %s", rolesContract);
-            marketAddress = _deployHostMarket(
-                deployer, market, operator, interestModel, _zkVerifier, rolesContract
-            );
+            marketAddress = _deployHostMarket(deployer, market, operator, interestModel, _zkVerifier, rolesContract);
 
             marketAddresses.push(marketAddress);
 
@@ -570,8 +571,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             Pauser(pauser).addPausableMarket(marketAddress, IPauser.PausableType.Host);
             vm.stopBroadcast();
         } else {
-            marketAddress =
-                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
+            marketAddress = _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
             marketAddresses.push(marketAddress);
             extensionMarketAddresses.push(marketAddress);
 
@@ -701,7 +701,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         // Set collateral factor
         _setCollateralFactor(operator, market, collateralFactor);
-        
+
         // Set reserve factor
         _setReserveFactor(market, reserveFactor);
 
@@ -716,7 +716,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         // Set borrow rate max mantissa
         _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
     }
 
     function _setRoles(address rolesContract, string memory network) internal {
@@ -769,7 +768,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
     function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {
         setOperatorInRewardDistributor.run(operator, rewardDistributor);
     }
-    
+
     function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
         return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
     }

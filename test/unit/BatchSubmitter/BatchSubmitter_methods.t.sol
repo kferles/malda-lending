@@ -46,10 +46,10 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         selectors[1] = OUT_HERE_SELECTOR;
 
         bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            markets, 
-            amounts, 
-            TEST_SOURCE_CHAIN_ID, 
+            senders,
+            markets,
+            amounts,
+            TEST_SOURCE_CHAIN_ID,
             uint32(block.chainid),
             true // Set L1inclusion to true for tests
         );

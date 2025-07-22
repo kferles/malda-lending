@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 
 contract SetReserveFactor is Script {
     function run(address market, uint256 factor) public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Setting reserve factor for market", market);
 

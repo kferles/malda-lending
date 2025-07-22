@@ -106,7 +106,9 @@ contract DeployProtocolUpdated is DeployBase {
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            address zkVerifier = _deployZkVerifier(
+                owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
+            );
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
             if (configs[network].isHost) {
@@ -185,16 +187,13 @@ contract DeployProtocolUpdated is DeployBase {
 
         // Deploy proxy for market
         if (isHost) {
-            marketAddress = _deployHostMarket(
-                deployer, market, operator, interestModel, _zkVerifier, rolesContract
-            );
+            marketAddress = _deployHostMarket(deployer, market, operator, interestModel, _zkVerifier, rolesContract);
             console.log("------------marketAddress", marketAddress);
             console.log("------------market.name", market.name);
 
             marketAddresses.push(marketAddress);
         } else {
-            marketAddress =
-                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
+            marketAddress = _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
         }
 
         // Configure market if host chain

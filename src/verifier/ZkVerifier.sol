@@ -90,7 +90,6 @@ contract ZkVerifier is Ownable, IZkVerifier {
         __verify(journalEntry, seal);
     }
 
-
     // ----------- PRIVATE ------------
     function _checkAddresses() private view {
         require(address(verifier) != address(0), ZkVerifier_VerifierNotSet());

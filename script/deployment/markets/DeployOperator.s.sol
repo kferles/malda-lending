@@ -24,7 +24,7 @@ contract DeployOperator is Script {
         public
         returns (address)
     {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         bytes32 implSalt = _getSalt("OperatorImplementationV1.0.0");
         address implementation = deployer.precompute(implSalt);
@@ -61,7 +61,7 @@ contract DeployOperator is Script {
             vm.stopBroadcast();
             console.log("Oracle has been set");
         }
-      
+
         return operatorAddress;
     }
 

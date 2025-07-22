@@ -1,5 +1,5 @@
 # mErc20
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\mErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\mErc20.sol)
 
 **Inherits:**
 [mToken](/src\mToken\mToken.sol\abstract.mToken.md), [ImErc20](/src\interfaces\ImErc20.sol\interface.ImErc20.md)
@@ -47,43 +47,20 @@ function _initializeMErc20(
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
 
 
-### checkSameChainAllowed
-
-
-```solidity
-modifier checkSameChainAllowed();
-```
-
-### delegateMaldaLikeTo
-
-Admin call to delegate the votes of the MALDA-like underlying
-
-*mTokens whose underlying are not  should revert here*
-
-
-```solidity
-function delegateMaldaLikeTo(address delegatee) external onlyAdmin;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`delegatee`|`address`|The address to delegate votes to|
-
-
 ### sweepToken
 
 A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
 
 
 ```solidity
-function sweepToken(IERC20 token) external onlyAdmin;
+function sweepToken(IERC20 token, uint256 amount) external onlyAdmin;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`IERC20`|The address of the ERC-20 token to sweep|
+|`amount`|`uint256`||
 
 
 ### mint
@@ -94,7 +71,7 @@ Sender supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external checkSameChainAllowed;
+function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external;
 ```
 **Parameters**
 
@@ -113,7 +90,7 @@ Sender redeems mTokens in exchange for the underlying asset
 
 
 ```solidity
-function redeem(uint256 redeemTokens) external checkSameChainAllowed;
+function redeem(uint256 redeemTokens) external;
 ```
 **Parameters**
 
@@ -130,7 +107,7 @@ Sender redeems mTokens in exchange for a specified amount of underlying asset
 
 
 ```solidity
-function redeemUnderlying(uint256 redeemAmount) external checkSameChainAllowed;
+function redeemUnderlying(uint256 redeemAmount) external;
 ```
 **Parameters**
 
@@ -145,7 +122,7 @@ Sender borrows assets from the protocol to their own address
 
 
 ```solidity
-function borrow(uint256 borrowAmount) external checkSameChainAllowed;
+function borrow(uint256 borrowAmount) external;
 ```
 **Parameters**
 
@@ -160,7 +137,7 @@ Sender repays their own borrow
 
 
 ```solidity
-function repay(uint256 repayAmount) external checkSameChainAllowed returns (uint256);
+function repay(uint256 repayAmount) external returns (uint256);
 ```
 **Parameters**
 
@@ -175,7 +152,7 @@ Sender repays a borrow belonging to borrower
 
 
 ```solidity
-function repayBehalf(address borrower, uint256 repayAmount) external checkSameChainAllowed returns (uint256);
+function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256);
 ```
 **Parameters**
 
@@ -192,7 +169,7 @@ The collateral seized is transferred to the liquidator.
 
 
 ```solidity
-function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external checkSameChainAllowed;
+function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external;
 ```
 **Parameters**
 

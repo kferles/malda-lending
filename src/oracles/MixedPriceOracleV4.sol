@@ -51,12 +51,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     event PriceDeltaUpdated(uint256 oldVal, uint256 newVal);
     event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol);
 
-    constructor(
-        string[] memory symbols_,
-        PriceConfig[] memory configs_,
-        address roles_,
-        uint256 stalenessPeriod_
-    ) {
+    constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) {
         roles = IRoles(roles_);
         for (uint256 i = 0; i < symbols_.length; i++) {
             configs[symbols_[i]] = configs_[i];
@@ -105,7 +100,6 @@ contract MixedPriceOracleV4 is IOracleOperator {
         emit PriceSymbolDeltaUpdated(deltaPerSymbol[_symbol], _delta, _symbol);
         deltaPerSymbol[_symbol] = _delta;
     }
-    
 
     function getPrice(address mToken) public view returns (uint256) {
         string memory symbol = ImTokenMinimal(mToken).symbol();
@@ -141,8 +135,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
         if (config.api3Feed == address(0) || config.eOracleFeed == address(0)) revert MixedPriceOracle_MissingFeed();
 
         //get both prices
-        (,int256 apiV3Price,, uint256 apiV3UpdatedAt,) = IDefaultAdapter(config.api3Feed).latestRoundData();
-        (,int256 eOraclePrice,, uint256 eOracleUpdatedAt,) = IDefaultAdapter(config.eOracleFeed).latestRoundData();
+        (, int256 apiV3Price,, uint256 apiV3UpdatedAt,) = IDefaultAdapter(config.api3Feed).latestRoundData();
+        (, int256 eOraclePrice,, uint256 eOracleUpdatedAt,) = IDefaultAdapter(config.eOracleFeed).latestRoundData();
 
         // check if ApiV3 price is up to date
         uint256 _staleness = _getStaleness(symbol);
@@ -175,6 +169,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     function _absDiff(int256 a, int256 b) internal pure returns (uint256) {
         return uint256(a >= b ? a - b : b - a);
     }
+
     function _getStaleness(string memory symbol) internal view returns (uint256) {
         uint256 _registered = stalenessPerSymbol[symbol];
         return _registered > 0 ? _registered : STALENESS_PERIOD;

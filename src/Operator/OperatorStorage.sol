@@ -87,18 +87,18 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @inheritdoc IOperator
      */
-    uint256 public limitPerTimePeriod; 
+    uint256 public limitPerTimePeriod;
 
     /**
      * @inheritdoc IOperator
      */
-    uint256 public cumulativeOutflowVolume; 
+    uint256 public cumulativeOutflowVolume;
 
     /**
      * @inheritdoc IOperator
      */
-    uint256 public lastOutflowResetTimestamp; 
-    
+    uint256 public lastOutflowResetTimestamp;
+
     // Outflow time window
     /**
      * @inheritdoc IOperator
@@ -140,7 +140,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
 
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
-
 
     // ----------- ERRORS ------------
     error Operator_Paused();
@@ -218,7 +217,9 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @notice Emitted when liquidation incentive is changed by admin
      */
-    event NewLiquidationIncentive(address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
+    event NewLiquidationIncentive(
+        address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa
+    );
     /**
      * @notice Emitted when price oracle is changed
      */
@@ -233,7 +234,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @notice Event emitted when outflow limit is updated
      */
     event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
-     
+
     /**
      * @notice Event emitted when outflow reset time window is updated
      */
@@ -243,5 +244,4 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @notice Event emitted when outflow volume has been reset
      */
     event OutflowVolumeReset();
-
 }

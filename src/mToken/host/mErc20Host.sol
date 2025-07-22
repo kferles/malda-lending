@@ -60,6 +60,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         mapping(address => uint256) inPerChain;
         mapping(address => uint256) outPerChain;
     }
+
     mapping(uint32 => Accumulated) internal acc;
 
     mapping(address => mapping(address => bool)) public allowedCallers;
@@ -143,7 +144,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
         migrator = _migrator;
     }
-    
+
     /**
      * @notice Sets the gas fees helper address
      * @param _helper The new helper address
@@ -159,7 +160,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
      */
     function withdrawGasFees(address payable receiver) external {
         _onlyAdminOrRole(_getSequencerRole());
-           
+
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -294,7 +295,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @inheritdoc ImErc20Host
      */
-    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount) external onlyMigrator {
+    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+        external
+        onlyMigrator
+    {
         require(amount > 0, mErc20Host_AmountNotValid());
 
         if (mint) {
@@ -347,7 +351,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool) {
         return rolesOperator.isAllowedFor(_sender, role);
     }
-    
+
     function _getChainsManagerRole() internal view returns (bytes32) {
         return rolesOperator.CHAINS_MANAGER();
     }
@@ -371,12 +375,12 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         bytes[] memory journals = _decodeJournals(journalData);
 
         // Check the L1Inclusion flag for each journal.
-        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
-                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole())
+            || _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
-                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                (,,,,,, bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
                 if (!L1Inclusion) {
                     revert mErc20Host_L1InclusionRequired();
                 }
@@ -386,7 +390,6 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // verify it using the IZkVerifier contract
         verifier.verifyInput(journalData, seal);
     }
-
 
     function _liquidateExternal(
         bytes memory singleJournal,
@@ -424,7 +427,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
         internal
     {
-        (address _sender, address _market, uint256 _accAmountIn, , uint32 _chainId, uint32 _dstChainId,) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
@@ -461,9 +464,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // operation checks
         {
             require(repayAmount > 0, mErc20Host_AmountNotValid());
-            require(
-                actualRepayAmount <= _accAmountIn - acc[_chainId].inPerChain[_sender], mErc20Host_AmountTooBig()
-            );
+            require(actualRepayAmount <= _accAmountIn - acc[_chainId].inPerChain[_sender], mErc20Host_AmountTooBig());
         }
 
         // actions

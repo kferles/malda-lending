@@ -154,7 +154,6 @@ interface ImTokenGateway {
      */
     error mTokenGateway_UserNotWhitelisted();
 
-
     // ----------- VIEW -----------
     /**
      * @notice Roles manager

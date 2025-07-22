@@ -17,7 +17,7 @@ import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol
  */
 contract DeployChainlinkOracle is Script {
     function run(Deployer deployer) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         string[] memory symbols = new string[](1);
         symbols[0] = "USDCETH";

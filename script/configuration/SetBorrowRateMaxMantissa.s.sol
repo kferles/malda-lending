@@ -7,7 +7,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetBorrowRateMaxMantissa is Script {
     function run(address market, uint256 borrowRateMaxMantissa) public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Setting borrow rate max mantissa for market", market);
 

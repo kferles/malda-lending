@@ -1,5 +1,5 @@
 # ImTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\interfaces\ImTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
@@ -58,15 +58,6 @@ Returns accumulated amount out per user
 
 ```solidity
 function accAmountOut(address user) external view returns (uint256);
-```
-
-### isCallerAllowed
-
-Returns if a caller is allowed for sender
-
-
-```solidity
-function isCallerAllowed(address sender, address caller) external view returns (bool);
 ```
 
 ### getProofData

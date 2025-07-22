@@ -1,5 +1,5 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
 OwnableUpgradeable, [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
@@ -137,15 +137,6 @@ function isPaused(OperationType _type) external view returns (bool);
 |----|----|-----------|
 |`_type`|`OperationType`|the operation type|
 
-
-### isCallerAllowed
-
-Returns if a caller is allowed for sender
-
-
-```solidity
-function isCallerAllowed(address sender, address caller) external view returns (bool);
-```
 
 ### getProofData
 

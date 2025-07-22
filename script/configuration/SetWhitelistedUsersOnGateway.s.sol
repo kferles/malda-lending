@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetWhitelistedUsersOnGateway is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         mTokenGateway market = mTokenGateway(0xcb4d153604a6F21Ff7625e5044E89C3b903599Bc);
 
@@ -37,7 +37,7 @@ contract SetWhitelistedUsersOnGateway is Script {
         users[23] = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
         users[24] = 0xBd0Ce952bA069A1e15f3bf3916d4B07bBBdBC8B3;
 
-        for (uint256 i; i< users.length; ++i) {
+        for (uint256 i; i < users.length; ++i) {
             console.log("Setting whitelisted user:", users[i]);
             vm.startBroadcast(key);
             market.setWhitelistedUser(users[i], true);
