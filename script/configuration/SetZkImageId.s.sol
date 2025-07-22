@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetZkImageId is Script {
     function run(address zkVerifier, bytes32 imageId) public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Setting ZK image ID for IZkVerifier %s", zkVerifier);
 

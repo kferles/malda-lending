@@ -17,15 +17,62 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --broadcast
  */
 contract DeployMixedPriceOracleV4 is Script {
+    function runTestnet(Deployer deployer, address roles, uint256 stalenessPeriod) public returns (address) {
+        uint256 key = vm.envUint("PRIVATE_KEY");
+
+        string[] memory symbols = new string[](0);
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](0);
+
+        bytes32 salt = getSalt("MixedPriceOracleV4V1.0.1");
+        address created = deployer.precompute(salt);
+        if (created.code.length > 0) {
+            console.log("MixedPriceOracleV4 already deployed at: %s", created);
+        } else {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt,
+                abi.encodePacked(
+                    type(MixedPriceOracleV4).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("MixedPriceOracleV4 deployed at: %s", created);
+        }
+
+        return created;
+    }
+
+    function runWithoutFeeds(Deployer deployer, address roles, uint256 stalenessPeriod) public returns (address) {
+        uint256 key = vm.envUint("PRIVATE_KEY");
+
+        string[] memory symbols = new string[](0);
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](0);
+
+        bytes32 salt = getSalt("MixedPriceOracleV4V1.0.1");
+        address created = deployer.precompute(salt);
+        if (created.code.length > 0) {
+            console.log("MixedPriceOracleV4 already deployed at: %s", created);
+        } else {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt,
+                abi.encodePacked(
+                    type(MixedPriceOracleV4).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("MixedPriceOracleV4 deployed at: %s", created);
+        }
+
+        return created;
+    }
     //function runWithFeeds(Deployer deployer, OracleFeedV4[] memory feeds, address roles, uint256 stalenessPeriod)
-    function run()
-        public
-        returns (address)
-    {
+
+    function run() public returns (address) {
         Deployer deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
         address roles = 0x1211d07F0EBeA8994F23EC26e1e512929FC8Ab08;
         uint256 stalenessPeriod = 86400;
-        
+
         OracleFeedV4[] memory feeds = new OracleFeedV4[](16);
         // usdc
         feeds[0] = OracleFeedV4({
@@ -148,10 +195,7 @@ contract DeployMixedPriceOracleV4 is Script {
             underlyingDecimals: 18
         });
 
-
-
-
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         uint256 len = feeds.length;
         string[] memory symbols = new string[](len);

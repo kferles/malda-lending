@@ -24,5 +24,5 @@ pragma solidity =0.8.28;
 */
 
 interface IGasFeesHelper {
-   function gasFees(uint32 dstChainId) external view returns (uint256);
+    function gasFees(uint32 dstChainId) external view returns (uint256);
 }

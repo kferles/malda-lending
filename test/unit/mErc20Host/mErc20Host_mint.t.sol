@@ -193,7 +193,6 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         mWethHost.setReserveFactor(1e17);
     }
 
-
     function test_WhenSealVerificationWasOk_And_OverflowLimitIsInPlace(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
@@ -210,7 +209,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
 
-        Operator(operator).setOutflowTimeLimitInUSD(amount * 1e8 +1);
+        Operator(operator).setOutflowTimeLimitInUSD(amount * 1e8 + 1);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
@@ -257,7 +256,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
-        
+
         uint256 totalSupplyAfter = mWethHost.totalSupply();
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
         assertGt(balanceOfAfter, balanceOfBefore);
@@ -280,7 +279,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         Operator(operator).setOutflowTimeLimitInUSD(100);
-        
+
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 

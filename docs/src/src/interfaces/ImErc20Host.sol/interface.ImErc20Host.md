@@ -1,17 +1,8 @@
 # ImErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\interfaces\ImErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\interfaces\ImErc20Host.sol)
 
 
 ## Functions
-### isCallerAllowed
-
-Returns if a caller is allowed for sender
-
-
-```solidity
-function isCallerAllowed(address sender, address caller) external view returns (bool);
-```
-
 ### getProofData
 
 Returns the proof data journal
@@ -21,38 +12,24 @@ Returns the proof data journal
 function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 ```
 
-### mintMigration
+### mintOrBorrowMigration
 
 Mints mTokens during migration without requiring underlying transfer
 
 
 ```solidity
-function mintMigration(uint256 amount, uint256 minAmount, address receiver) external;
+function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+    external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`mint`|`bool`|Mint or borrow|
 |`amount`|`uint256`|The amount of underlying to be accounted for|
-|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
-|`receiver`|`address`|The address that will receive the mTokens|
-
-
-### borrowMigration
-
-Borrows from market for a specific borrower and not `msg.sender`
-
-
-```solidity
-function borrowMigration(uint256 amount, address borrower, address receiver) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`receiver`|`address`|The address that will receive the mTokens or the underlying in case of borrowing|
 |`borrower`|`address`|The address that borrow is executed for|
-|`receiver`|`address`||
+|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
 
 
 ### extractForRebalancing
@@ -161,34 +138,19 @@ function repayExternal(
 |`receiver`|`address`|The position to repay for|
 
 
-### withdrawOnExtension
+### performExtensionCall
 
 Initiates a withdraw operation
 
 
 ```solidity
-function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable;
+function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount to withdraw|
-|`dstChainId`|`uint32`|The destination chain to recieve funds|
-
-
-### borrowOnExtension
-
-Initiates a withdraw operation
-
-
-```solidity
-function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
+|`actionType`|`uint256`|The actionType param (1 - withdraw, 2 - borrow)|
 |`amount`|`uint256`|The amount to withdraw|
 |`dstChainId`|`uint32`|The destination chain to recieve funds|
 
@@ -397,5 +359,13 @@ Thrown when L1 inclusion is required
 
 ```solidity
 error mErc20Host_L1InclusionRequired();
+```
+
+### mErc20Host_ActionNotAvailable
+Thrown when extension action is not valid
+
+
+```solidity
+error mErc20Host_ActionNotAvailable();
 ```
 

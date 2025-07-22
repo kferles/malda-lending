@@ -32,8 +32,8 @@ contract DeployHostMarket is Script {
     }
 
     function run(Deployer deployer, MarketData memory marketData) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        
+        uint256 key = vm.envUint("PRIVATE_KEY");
+
         // Deploy implementation
         bytes32 implSalt =
             getSalt(string.concat("mTokenHost-implementationV1.0.1", addressToString(marketData.underlyingToken)));

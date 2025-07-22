@@ -114,7 +114,6 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-
     function test_WrapAndSupply() external {
         WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
         vm.label(address(wrapAndSupply), "WrapAndSupply Helper");

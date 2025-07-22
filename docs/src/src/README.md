@@ -7,7 +7,6 @@
 - [libraries](/src\libraries)
 - [mToken](/src\mToken)
 - [migration](/src\migration)
-- [nft](/src\nft)
 - [oracles](/src\oracles)
 - [pauser](/src\pauser)
 - [rebalancer](/src\rebalancer)

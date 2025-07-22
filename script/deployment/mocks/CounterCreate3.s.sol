@@ -9,11 +9,11 @@ contract CounterCreate3Script is Script {
     Deployer deployer;
 
     function setUp() public {
-        deployer = Deployer(payable(vm.envAddress("DEPLOYER_ADDRESS")));
+        deployer = Deployer(payable(0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00));
     }
 
     function run() public {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT"))));

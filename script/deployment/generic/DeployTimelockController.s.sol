@@ -13,12 +13,14 @@ contract DeployTimelockController is Script {
 
         address created = _deployer.precompute(salt);
         if (created.code.length == 0) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             //constructor(uint256 minDelay, address[] memory proposers, address[] memory executors, address admin) {
             uint256 minDelay = 3600;
             address[] memory data = new address[](1);
             data[0] = owner;
-            created = _deployer.create(salt, abi.encodePacked(type(TimelockController).creationCode, abi.encode(minDelay, data, data, owner)));
+            created = _deployer.create(
+                salt, abi.encodePacked(type(TimelockController).creationCode, abi.encode(minDelay, data, data, owner))
+            );
             vm.stopBroadcast();
             console.log("TimelockController deployed at: %s", created);
         } else {

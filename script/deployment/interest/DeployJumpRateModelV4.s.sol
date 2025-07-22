@@ -26,7 +26,7 @@ contract DeployJumpRateModelV4 is Script {
     }
 
     function run(Deployer deployer, InterestData memory data, address owner) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV1.0.0"));
 
