@@ -22,39 +22,6 @@ contract BlacklisterTest is Test {
         vm.label(address(blacklister), "Blacklister");
     }
 
-    function testProposeToBlacklist() public {
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-        assertTrue(blacklister.proposedForBlacklist(user));
-    }
-
-    function testProposeAlreadyBlacklistedReverts() public {
-        vm.prank(owner);
-        blacklister.blacklist(user);
-
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        vm.expectRevert(Blacklister.Blacklister_AlreadyBlacklisted.selector);
-        blacklister.proposeToBlacklist(user);
-    }
-
-    function testProposeAlreadyProposedReverts() public {
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-
-        vm.prank(guardian);
-        vm.expectRevert(Blacklister.Blacklister_AlreadyProposed.selector);
-        blacklister.proposeToBlacklist(user);
-    }
-
-    function testProposeNotAllowedReverts() public {
-        vm.prank(guardian);
-        vm.expectRevert(Blacklister.Blacklister_NotAllowed.selector);
-        blacklister.proposeToBlacklist(user);
-    }
-
     function testBlacklistAndUnblacklist() public {
         vm.prank(owner);
         blacklister.blacklist(user);
@@ -89,62 +56,6 @@ contract BlacklisterTest is Test {
         assertEq(list.length, 1);
         assertEq(list[0], user2);
         vm.stopPrank();
-    }
-
-    function testApproveBlacklist() public {
-        vm.warp(block.timestamp + 1 days);
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-
-        vm.warp(1 days);
-
-        vm.prank(owner);
-        blacklister.approveBlacklist(user);
-
-        assertTrue(blacklister.isBlacklisted(user));
-    }
-
-    function testApproveBlacklistNotProposedReverts() public {
-        vm.prank(owner);
-        vm.expectRevert(Blacklister.Blacklister_NotProposed.selector);
-        blacklister.approveBlacklist(user);
-    }
-
-    function testApproveAlreadyBlacklistedReverts() public {
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-
-        vm.prank(owner);
-        blacklister.blacklist(user);
-
-        vm.expectRevert(Blacklister.Blacklister_NotProposed.selector);
-        vm.prank(owner);
-        blacklister.approveBlacklist(user);
-    }
-
-
-    function testApproveExpiredProposalReverts() public {
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-
-        vm.warp(block.timestamp + 4 days); // > proposalExpiryTime
-
-        vm.prank(owner);
-        vm.expectRevert(Blacklister.Blacklister_ProposalExpired.selector);
-        blacklister.approveBlacklist(user);
-    }
-
-    function testIsProposalExpiredLogic() public {
-        roles.setAllowed(guardian, true);
-        vm.prank(guardian);
-        blacklister.proposeToBlacklist(user);
-
-        assertFalse(blacklister.isProposalExpired(user));
-        vm.warp(block.timestamp + 4 days);
-        assertTrue(blacklister.isProposalExpired(user));
     }
 
     function testGetBlacklistedAddresses() public {

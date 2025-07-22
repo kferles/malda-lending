@@ -27,9 +27,6 @@ import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 contract Blacklister is OwnableUpgradeable, IBlacklister {
     // ----------- STORAGE -----------
     mapping(address => bool) public isBlacklisted;
-    mapping(address => bool) public proposedForBlacklist;
-    mapping(address => uint256) public blacklistProposalTimestamp;
-    uint256 public proposalExpiryTime = 3 days;
     
     address[] private _blacklistedList;
 
@@ -38,10 +35,7 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     // ----------- ERRORS -----------
     error Blacklister_AlreadyBlacklisted();
     error Blacklister_NotBlacklisted();
-    error Blacklister_AlreadyProposed();
-    error Blacklister_NotProposed();
     error Blacklister_NotAllowed();
-    error Blacklister_ProposalExpired();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -56,64 +50,31 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
         rolesOperator = IRoles(_roles);
     }
 
+    modifier onlyOwnerOrGuardian() {
+        require(msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST()), Blacklister_NotAllowed());
+        _;
+    }
+
     // ----------- VIEW ------------
     function getBlacklistedAddresses() external view returns (address[] memory) {
         return _blacklistedList;
     }
-
-    function isProposalExpired(address user) public view returns (bool) {
-        if (!proposedForBlacklist[user]) return false;
-        return block.timestamp > blacklistProposalTimestamp[user] + proposalExpiryTime;
-    }
-
     
     // ----------- OWNER ------------
-    function blacklist(address user) external override onlyOwner {
+    function blacklist(address user) external override onlyOwnerOrGuardian {
         if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
-        _resetProposal(user);
         _addToBlacklist(user);
     }
 
-    function unblacklist(address user) external override onlyOwner {
+    function unblacklist(address user) external override onlyOwnerOrGuardian {
         if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
         isBlacklisted[user] = false;
         _removeFromBlacklistList(user);
-        _resetProposal(user);
         emit Unblacklisted(user);
-    }
-
-    function approveBlacklist(address user) external override onlyOwner {
-        if (!proposedForBlacklist[user]) revert Blacklister_NotProposed();
-        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
-        if (isProposalExpired(user)) revert Blacklister_ProposalExpired();
-        _resetProposal(user);
-        _addToBlacklist(user);
-    }
-
-    function setProposalExpiry(uint256 expiry) external onlyOwner {
-        proposalExpiryTime = expiry;
-        emit BlacklistProposalExpiry(expiry);
-    }
-    // ----------- GUARDIAN ------------
-    function proposeToBlacklist(address user) external override {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST())) {
-            revert Blacklister_NotAllowed();
-        }
-        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
-        if (proposedForBlacklist[user]) revert Blacklister_AlreadyProposed();
-
-        proposedForBlacklist[user] = true;
-        blacklistProposalTimestamp[user] = block.timestamp;
-        emit BlacklistProposed(user);
     }
 
    
     // ----------- INTERNAL ------------
-    function _resetProposal(address user) internal {
-        proposedForBlacklist[user] = false;
-        blacklistProposalTimestamp[user] = 0;
-    }
-
     function _addToBlacklist(address user) internal {
         isBlacklisted[user] = true;
         _blacklistedList.push(user);
