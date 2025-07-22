@@ -102,6 +102,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(weth),
             address(roles),
+            address(blacklister),
             address(zkVerifier)
         );
         ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), wethGatewayInitData);

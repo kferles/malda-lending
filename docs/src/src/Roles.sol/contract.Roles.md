@@ -1,5 +1,5 @@
 # Roles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\Roles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\Roles.sol)
 
 **Inherits:**
 Ownable, [IRoles](/src\interfaces\IRoles.sol\interface.IRoles.md)
@@ -101,6 +101,13 @@ bytes32 public constant GUARDIAN_BORROW_CAP = keccak256("GUARDIAN_BORROW_CAP");
 
 ```solidity
 bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
+```
+
+
+### GUARDIAN_BLACKLIST
+
+```solidity
+bytes32 public constant GUARDIAN_BLACKLIST = keccak256("GUARDIAN_BLACKLIST");
 ```
 
 

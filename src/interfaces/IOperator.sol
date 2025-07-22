@@ -25,6 +25,7 @@ pragma solidity =0.8.28;
 */
 
 import {IRoles} from "./IRoles.sol";
+import {IBlacklister} from "./IBlacklister.sol";
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface IOperatorData {
@@ -166,9 +167,15 @@ interface IOperator {
     function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view returns (bool);
 
     /**
-     * @notice Roles manager
+     * @notice Roles
      */
     function rolesOperator() external view returns (IRoles);
+
+    /**
+     * @notice Blacklist
+     */
+    function blacklistOperator() external view returns (IBlacklister);
+
 
     /**
      * @notice Oracle which gives the price of any given asset

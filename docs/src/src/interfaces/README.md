@@ -2,6 +2,7 @@
 
 # Contents
 - [external](/src\interfaces\external)
+- [IBlacklister](IBlacklister.sol\interface.IBlacklister.md)
 - [IBridge](IBridge.sol\interface.IBridge.md)
 - [IDefaultAdapter](IDefaultAdapter.sol\interface.IDefaultAdapter.md)
 - [IGasFeesHelper](IGasFeesHelper.sol\interface.IGasFeesHelper.md)

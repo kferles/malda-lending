@@ -1,5 +1,5 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
 OwnableUpgradeable, [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
@@ -7,11 +7,20 @@ OwnableUpgradeable, [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interfac
 
 ## State Variables
 ### rolesOperator
-Roles manager
+Roles
 
 
 ```solidity
 IRoles public rolesOperator;
+```
+
+
+### blacklistOperator
+Blacklist
+
+
+```solidity
+IBlacklister public blacklistOperator;
 ```
 
 
@@ -104,9 +113,13 @@ constructor();
 
 
 ```solidity
-function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
-    external
-    initializer;
+function initialize(
+    address payable _owner,
+    address _underlying,
+    address _roles,
+    address _blacklister,
+    address zkVerifier_
+) external initializer;
 ```
 
 ### notPaused
@@ -121,6 +134,13 @@ modifier notPaused(OperationType _type);
 
 ```solidity
 modifier onlyAllowedUser(address user);
+```
+
+### ifNotBlacklisted
+
+
+```solidity
+modifier ifNotBlacklisted(address user);
 ```
 
 ### isPaused
@@ -212,13 +232,6 @@ function extractForRebalancing(uint256 amount) external notPaused(OperationType.
 |`amount`|`uint256`|The amount to rebalance|
 
 
-### setUnderlying
-
-
-```solidity
-function setUnderlying(address _addr) external onlyOwner;
-```
-
 ### setGasFee
 
 Sets the gas fee
@@ -291,7 +304,9 @@ function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
     payable
     override
     notPaused(OperationType.AmountIn)
-    onlyAllowedUser(msg.sender);
+    onlyAllowedUser(msg.sender)
+    ifNotBlacklisted(msg.sender)
+    ifNotBlacklisted(receiver);
 ```
 **Parameters**
 
@@ -310,7 +325,9 @@ Extract tokens
 ```solidity
 function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
     external
-    notPaused(OperationType.AmountOutHere);
+    notPaused(OperationType.AmountOutHere)
+    ifNotBlacklisted(msg.sender)
+    ifNotBlacklisted(receiver);
 ```
 **Parameters**
 

@@ -24,6 +24,7 @@ pragma solidity =0.8.28;
 */
 
 import {IRoles} from "./IRoles.sol";
+import {IBlacklister} from "./IBlacklister.sol";
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface ImTokenGateway {
@@ -154,11 +155,21 @@ interface ImTokenGateway {
      */
     error mTokenGateway_UserNotWhitelisted();
 
+    /**
+     * @notice Thrown when user is blacklisted
+     */
+    error mTokenGateway_UserBlacklisted();
+
     // ----------- VIEW -----------
     /**
-     * @notice Roles manager
+     * @notice Roles
      */
     function rolesOperator() external view returns (IRoles);
+
+    /**
+     * @notice Blacklist
+     */
+    function blacklistOperator() external view returns (IBlacklister);
 
     /**
      * @notice Returns the address of the underlying token

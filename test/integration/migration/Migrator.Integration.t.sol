@@ -46,11 +46,12 @@ contract MigrationTests is Base_Integration_Test {
         bytes memory rewardsInitData = abi.encodeWithSelector(RewardDistributor.initialize.selector, address(this));
         ERC1967Proxy rewardsProxy = new ERC1967Proxy(address(rewardsImpl), rewardsInitData);
         rewards = RewardDistributor(address(rewardsProxy));
+        vm.makePersistent(address(rewards));
         vm.label(address(rewards), "RewardDistributor");
 
         Operator oprImp = new Operator();
         bytes memory operatorInitData =
-            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(rewards), address(this));
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(this), address(rewards), address(this));
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");

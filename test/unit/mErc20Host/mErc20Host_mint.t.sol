@@ -263,6 +263,25 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertEq(totalSupplyAfter, totalSupplyBefore + 2 * amount);
     }
 
+    function test_WhenSealVerificationWasOk_And_OverflowLimitNotExceeded_ButUserIsBlacklisted(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 10);
+
+        Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
+        blacklister.blacklist(address(this));
+        vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+    }
+
     function test_WhenSealVerificationWasOk_And_AmountIsZero()
         external
         whenMintExternalIsCalled

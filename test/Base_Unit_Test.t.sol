@@ -13,6 +13,7 @@ import {Roles} from "src/Roles.sol";
 import {Operator} from "src/Operator/Operator.sol";
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
+import {Blacklister} from "src/blacklister/Blacklister.sol";
 
 import {Types} from "./utils/Types.sol";
 import {Events} from "./utils/Events.sol";
@@ -40,6 +41,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
     OracleMock public oracleOperator;
     RewardDistributor public rewards;
     JumpRateModelV4 public interestModel;
+    Blacklister public blacklister;
 
     function setUp() public virtual {
         alice = _spawnAccount(ALICE_KEY, "Alice");
@@ -59,9 +61,15 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         rewards = RewardDistributor(address(rewardsProxy));
         vm.label(address(rewards), "RewardDistributor");
 
+        Blacklister blacklisterImp = new Blacklister();
+        bytes memory blacklisterInitData = abi.encodeWithSelector(Blacklister.initialize.selector, address(this), address(roles));
+        ERC1967Proxy blacklisterProxy = new ERC1967Proxy(address(blacklisterImp), blacklisterInitData);
+        blacklister = Blacklister(address(blacklisterProxy));
+        vm.label(address(blacklister), "Blacklister");
+
         Operator oprImp = new Operator();
         bytes memory operatorInitData =
-            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(rewards), address(this));
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(rewards), address(this));
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");

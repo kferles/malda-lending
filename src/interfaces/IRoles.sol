@@ -90,6 +90,11 @@ interface IRoles {
      * @notice Returns GUARDIAN_ORACLE role
      */
     function GUARDIAN_ORACLE() external view returns (bytes32);
+    
+    /**
+     * @notice Returns GUARDIAN_BLACKLIST role
+     */
+    function GUARDIAN_BLACKLIST() external view returns (bytes32);
 
     /**
      * @notice Returns allowance status for a contract and a role

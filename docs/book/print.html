@@ -180,24 +180,36 @@ These critical components serve multiple function within the Malda application:<
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contents"><a class="header" href="#contents">Contents</a></h1>
 <ul>
+<li><a href="src%5COperator/EmptyOperator.sol%5Ccontract.EmptyOperator.html">EmptyOperator</a></li>
 <li><a href="src%5COperator/Operator.sol%5Ccontract.Operator.html">Operator</a></li>
 <li><a href="src%5COperator/OperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a></li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="emptyoperator"><a class="header" href="#emptyoperator">EmptyOperator</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5COperator%5CEmptyOperator.sol">Git Source</a></p>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="isoperator"><a class="header" href="#isoperator">isOperator</a></h3>
+<pre><code class="language-solidity">function isOperator() external pure returns (bool);
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5COperator%5COperator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5COperator%5COperator.sol//src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="src%5COperator%5COperator.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable</p>
-<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h2 id="functions-1"><a class="header" href="#functions-1">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor();
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
-<pre><code class="language-solidity">function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
+<pre><code class="language-solidity">function initialize(address _rolesOperator, address _blacklistOperator, address _rewardDistributor, address _admin)
+    public
+    initializer;
 </code></pre>
 <h3 id="onlyalloweduser"><a class="header" href="#onlyalloweduser">onlyAllowedUser</a></h3>
 <pre><code class="language-solidity">modifier onlyAllowedUser(address user);
+</code></pre>
+<h3 id="ifnotblacklisted"><a class="header" href="#ifnotblacklisted">ifNotBlacklisted</a></h3>
+<pre><code class="language-solidity">modifier ifNotBlacklisted(address user);
 </code></pre>
 <h3 id="setwhitelisteduser"><a class="header" href="#setwhitelisteduser">setWhitelistedUser</a></h3>
 <p>Sets user whitelist status</p>
@@ -341,7 +353,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <tr><td><code>newRewardDistributor</code></td><td><code>address</code></td><td>The address of the new Reward Distributor</td></tr>
 </tbody></table>
 </div>
-<h3 id="isoperator"><a class="header" href="#isoperator">isOperator</a></h3>
+<h3 id="isoperator-1"><a class="header" href="#isoperator-1">isOperator</a></h3>
 <p>Should return true</p>
 <pre><code class="language-solidity">function isOperator() external pure override returns (bool);
 </code></pre>
@@ -532,7 +544,11 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokentransfer"><a class="header" href="#beforemtokentransfer">beforeMTokenTransfer</a></h3>
 <p>Checks if the account should be allowed to transfer tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override;
+<pre><code class="language-solidity">function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens)
+    external
+    override
+    ifNotBlacklisted(src)
+    ifNotBlacklisted(dst);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -544,7 +560,11 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenmint"><a class="header" href="#beforemtokenmint">beforeMTokenMint</a></h3>
 <p>Checks if the account should be allowed to mint tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter);
+<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter)
+    external
+    override
+    onlyAllowedUser(minter)
+    ifNotBlacklisted(minter);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -566,7 +586,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
     external
     override
-    onlyAllowedUser(redeemer);
+    onlyAllowedUser(redeemer)
+    ifNotBlacklisted(redeemer);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -580,7 +601,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
     external
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -605,7 +627,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
     external
     view
     override
-    onlyAllowedUser(borrower);
+    onlyAllowedUser(borrower)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -619,7 +642,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p>Checks if the seizing of assets should be allowed to occur</p>
 <pre><code class="language-solidity">function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
     external
-    override;
+    override
+    ifNotBlacklisted(liquidator)
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -692,13 +717,17 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function _isDeprecated(address mToken) private view returns (bool);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="operatorstorage"><a class="header" href="#operatorstorage">OperatorStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5COperator%5COperatorStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5COperator%5COperatorStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5COperator%5COperatorStorage.sol//src%5Cinterfaces%5CIOperator.sol%5Cinterface.IOperator.html">IOperator</a>, <a href="src%5COperator%5COperatorStorage.sol//src%5Cinterfaces%5CIOperator.sol%5Cinterface.IOperatorDefender.html">IOperatorDefender</a>, <a href="src%5COperator%5COperatorStorage.sol//src%5Cutils%5CExponentialNoError.sol%5Cabstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
-<p>Roles manager</p>
+<p>Roles</p>
 <pre><code class="language-solidity">IRoles public rolesOperator;
+</code></pre>
+<h3 id="blacklistoperator"><a class="header" href="#blacklistoperator">blacklistOperator</a></h3>
+<p>Blacklist</p>
+<pre><code class="language-solidity">IBlacklister public blacklistOperator;
 </code></pre>
 <h3 id="oracleoperator"><a class="header" href="#oracleoperator">oracleOperator</a></h3>
 <p>Oracle which gives the price of any given asset</p>
@@ -878,6 +907,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <h3 id="operator_marketnotlisted"><a class="header" href="#operator_marketnotlisted">Operator_MarketNotListed</a></h3>
 <pre><code class="language-solidity">error Operator_MarketNotListed();
 </code></pre>
+<h3 id="operator_userblacklisted"><a class="header" href="#operator_userblacklisted">Operator_UserBlacklisted</a></h3>
+<pre><code class="language-solidity">error Operator_UserBlacklisted();
+</code></pre>
 <h3 id="operator_pricefetchfailed"><a class="header" href="#operator_pricefetchfailed">Operator_PriceFetchFailed</a></h3>
 <pre><code class="language-solidity">error Operator_PriceFetchFailed();
 </code></pre>
@@ -911,6 +943,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <h3 id="operator_invalidcollateralfactor"><a class="header" href="#operator_invalidcollateralfactor">Operator_InvalidCollateralFactor</a></h3>
 <pre><code class="language-solidity">error Operator_InvalidCollateralFactor();
 </code></pre>
+<h3 id="operator_invalidblacklistoperator"><a class="header" href="#operator_invalidblacklistoperator">Operator_InvalidBlacklistOperator</a></h3>
+<pre><code class="language-solidity">error Operator_InvalidBlacklistOperator();
+</code></pre>
 <h3 id="operator_invalidrewarddistributor"><a class="header" href="#operator_invalidrewarddistributor">Operator_InvalidRewardDistributor</a></h3>
 <pre><code class="language-solidity">error Operator_InvalidRewardDistributor();
 </code></pre>
@@ -940,14 +975,69 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contents-1"><a class="header" href="#contents-1">Contents</a></h1>
 <ul>
+<li><a href="src%5Cblacklister/Blacklister.sol%5Ccontract.Blacklister.html">Blacklister</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="blacklister"><a class="header" href="#blacklister">Blacklister</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cblacklister%5CBlacklister.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+OwnableUpgradeable, <a href="src%5Cblacklister%5CBlacklister.sol//src%5Cinterfaces%5CIBlacklister.sol%5Cinterface.IBlacklister.html">IBlacklister</a></p>
+<h2 id="state-variables-1"><a class="header" href="#state-variables-1">State Variables</a></h2>
+<h3 id="isblacklisted"><a class="header" href="#isblacklisted">isBlacklisted</a></h3>
+<pre><code class="language-solidity">mapping(address =&gt; bool) public isBlacklisted;
+</code></pre>
+<h3 id="_blacklistedlist"><a class="header" href="#_blacklistedlist">_blacklistedList</a></h3>
+<pre><code class="language-solidity">address[] private _blacklistedList;
+</code></pre>
+<h3 id="rolesoperator-1"><a class="header" href="#rolesoperator-1">rolesOperator</a></h3>
+<pre><code class="language-solidity">IRoles public rolesOperator;
+</code></pre>
+<h2 id="functions-2"><a class="header" href="#functions-2">Functions</a></h2>
+<h3 id="constructor-1"><a class="header" href="#constructor-1">constructor</a></h3>
+<p><strong>Note:</strong>
+oz-upgrades-unsafe-allow: constructor</p>
+<pre><code class="language-solidity">constructor();
+</code></pre>
+<h3 id="initialize-1"><a class="header" href="#initialize-1">initialize</a></h3>
+<pre><code class="language-solidity">function initialize(address payable _owner, address _roles) external initializer;
+</code></pre>
+<h3 id="onlyownerorguardian"><a class="header" href="#onlyownerorguardian">onlyOwnerOrGuardian</a></h3>
+<pre><code class="language-solidity">modifier onlyOwnerOrGuardian();
+</code></pre>
+<h3 id="getblacklistedaddresses"><a class="header" href="#getblacklistedaddresses">getBlacklistedAddresses</a></h3>
+<pre><code class="language-solidity">function getBlacklistedAddresses() external view returns (address[] memory);
+</code></pre>
+<h3 id="blacklist"><a class="header" href="#blacklist">blacklist</a></h3>
+<pre><code class="language-solidity">function blacklist(address user) external override onlyOwnerOrGuardian;
+</code></pre>
+<h3 id="unblacklist"><a class="header" href="#unblacklist">unblacklist</a></h3>
+<pre><code class="language-solidity">function unblacklist(address user) external override onlyOwnerOrGuardian;
+</code></pre>
+<h3 id="_addtoblacklist"><a class="header" href="#_addtoblacklist">_addToBlacklist</a></h3>
+<pre><code class="language-solidity">function _addToBlacklist(address user) internal;
+</code></pre>
+<h3 id="_removefromblacklistlist"><a class="header" href="#_removefromblacklistlist">_removeFromBlacklistList</a></h3>
+<pre><code class="language-solidity">function _removeFromBlacklistList(address user) internal;
+</code></pre>
+<h2 id="errors-1"><a class="header" href="#errors-1">Errors</a></h2>
+<h3 id="blacklister_alreadyblacklisted"><a class="header" href="#blacklister_alreadyblacklisted">Blacklister_AlreadyBlacklisted</a></h3>
+<pre><code class="language-solidity">error Blacklister_AlreadyBlacklisted();
+</code></pre>
+<h3 id="blacklister_notblacklisted"><a class="header" href="#blacklister_notblacklisted">Blacklister_NotBlacklisted</a></h3>
+<pre><code class="language-solidity">error Blacklister_NotBlacklisted();
+</code></pre>
+<h3 id="blacklister_notallowed"><a class="header" href="#blacklister_notallowed">Blacklister_NotAllowed</a></h3>
+<pre><code class="language-solidity">error Blacklister_NotAllowed();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-2"><a class="header" href="#contents-2">Contents</a></h1>
+<ul>
 <li><a href="src%5Cinterest/JumpRateModelV4.sol%5Ccontract.JumpRateModelV4.html">JumpRateModelV4</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="jumpratemodelv4"><a class="header" href="#jumpratemodelv4">JumpRateModelV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterest%5CJumpRateModelV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterest%5CJumpRateModelV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Cinterest%5CJumpRateModelV4.sol//src%5Cinterfaces%5CIInterestRateModel.sol%5Cinterface.IInterestRateModel.html">IInterestRateModel</a>, Ownable</p>
 <p>Implementation of the IInterestRateModel interface for calculating interest rates</p>
-<h2 id="state-variables-1"><a class="header" href="#state-variables-1">State Variables</a></h2>
+<h2 id="state-variables-2"><a class="header" href="#state-variables-2">State Variables</a></h2>
 <h3 id="blocksperyear"><a class="header" href="#blocksperyear">blocksPerYear</a></h3>
 <p>The approximate number of blocks per year that is assumed by the interest rate model</p>
 <pre><code class="language-solidity">uint256 public override blocksPerYear;
@@ -972,8 +1062,8 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <p>A name for user-friendliness, e.g. WBTC</p>
 <pre><code class="language-solidity">string public override name;
 </code></pre>
-<h2 id="functions-1"><a class="header" href="#functions-1">Functions</a></h2>
-<h3 id="constructor-1"><a class="header" href="#constructor-1">constructor</a></h3>
+<h2 id="functions-3"><a class="header" href="#functions-3">Functions</a></h2>
+<h3 id="constructor-2"><a class="header" href="#constructor-2">constructor</a></h3>
 <p>Construct an interest rate model</p>
 <pre><code class="language-solidity">constructor(
     uint256 blocksPerYear_,
@@ -1096,13 +1186,17 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <tr><td><code>kink_</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier applies</td></tr>
 </tbody></table>
 </div>
-<h2 id="errors-1"><a class="header" href="#errors-1">Errors</a></h2>
+<h2 id="errors-2"><a class="header" href="#errors-2">Errors</a></h2>
 <h3 id="jumpratemodelv4_multipliernotvalid"><a class="header" href="#jumpratemodelv4_multipliernotvalid">JumpRateModelV4_MultiplierNotValid</a></h3>
 <pre><code class="language-solidity">error JumpRateModelV4_MultiplierNotValid();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-2"><a class="header" href="#contents-2">Contents</a></h1>
+<h3 id="jumpratemodelv4_inputnotvalid"><a class="header" href="#jumpratemodelv4_inputnotvalid">JumpRateModelV4_InputNotValid</a></h3>
+<pre><code class="language-solidity">error JumpRateModelV4_InputNotValid();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-3"><a class="header" href="#contents-3">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces//src%5Cinterfaces%5Cexternal">external</a></li>
+<li><a href="src%5Cinterfaces/IBlacklister.sol%5Cinterface.IBlacklister.html">IBlacklister</a></li>
 <li><a href="src%5Cinterfaces/IBridge.sol%5Cinterface.IBridge.html">IBridge</a></li>
 <li><a href="src%5Cinterfaces/IDefaultAdapter.sol%5Cinterface.IDefaultAdapter.html">IDefaultAdapter</a></li>
 <li><a href="src%5Cinterfaces/IGasFeesHelper.sol%5Cinterface.IGasFeesHelper.html">IGasFeesHelper</a></li>
@@ -1126,7 +1220,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <li><a href="src%5Cinterfaces/ImToken.sol%5Cinterface.ImToken.html">ImToken</a></li>
 <li><a href="src%5Cinterfaces/ImTokenGateway.sol%5Cinterface.ImTokenGateway.html">ImTokenGateway</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-3"><a class="header" href="#contents-3">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-4"><a class="header" href="#contents-4">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal//src%5Cinterfaces%5Cexternal%5Cacross">across</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal//src%5Cinterfaces%5Cexternal%5Cchainlink">chainlink</a></li>
@@ -1135,20 +1229,20 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <li><a href="src%5Cinterfaces%5Cexternal//src%5Cinterfaces%5Cexternal%5Clayerzero">layerzero</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal//src%5Cinterfaces%5Cexternal%5Cpoh">poh</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-4"><a class="header" href="#contents-4">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-5"><a class="header" href="#contents-5">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Cacross/IAcrossReceiverV3.sol%5Cinterface.IAcrossReceiverV3.html">IAcrossReceiverV3</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Cacross/IAcrossSpokePoolV3.sol%5Cinterface.IAcrossSpokePoolV3.html">IAcrossSpokePoolV3</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iacrossreceiverv3"><a class="header" href="#iacrossreceiverv3">IAcrossReceiverV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Cacross%5CIAcrossReceiverV3.sol">Git Source</a></p>
-<h2 id="functions-2"><a class="header" href="#functions-2">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Cacross%5CIAcrossReceiverV3.sol">Git Source</a></p>
+<h2 id="functions-4"><a class="header" href="#functions-4">Functions</a></h2>
 <h3 id="handlev3acrossmessage"><a class="header" href="#handlev3acrossmessage">handleV3AcrossMessage</a></h3>
 <pre><code class="language-solidity">function handleV3AcrossMessage(address tokenSent, uint256 amount, address relayer, bytes memory message) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iacrossspokepoolv3"><a class="header" href="#iacrossspokepoolv3">IAcrossSpokePoolV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Cacross%5CIAcrossSpokePoolV3.sol">Git Source</a></p>
-<h2 id="functions-3"><a class="header" href="#functions-3">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Cacross%5CIAcrossSpokePoolV3.sol">Git Source</a></p>
+<h2 id="functions-5"><a class="header" href="#functions-5">Functions</a></h2>
 <h3 id="depositv3"><a class="header" href="#depositv3">depositV3</a></h3>
 <p>FUNCTIONS             *</p>
 <pre><code class="language-solidity">function depositV3(
@@ -1275,7 +1369,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
     bytes message
 );
 </code></pre>
-<h2 id="errors-2"><a class="header" href="#errors-2">Errors</a></h2>
+<h2 id="errors-3"><a class="header" href="#errors-3">Errors</a></h2>
 <h3 id="disabledroute"><a class="header" href="#disabledroute">DisabledRoute</a></h3>
 <p>ERRORS                *</p>
 <pre><code class="language-solidity">error DisabledRoute();
@@ -1387,13 +1481,13 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
     SlowFill
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-5"><a class="header" href="#contents-5">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-6"><a class="header" href="#contents-6">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Cchainlink/IAggregatorV3.sol%5Cinterface.IAggregatorV3.html">IAggregatorV3</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iaggregatorv3"><a class="header" href="#iaggregatorv3">IAggregatorV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Cchainlink%5CIAggregatorV3.sol">Git Source</a></p>
-<h2 id="functions-4"><a class="header" href="#functions-4">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Cchainlink%5CIAggregatorV3.sol">Git Source</a></p>
+<h2 id="functions-6"><a class="header" href="#functions-6">Functions</a></h2>
 <h3 id="decimals"><a class="header" href="#decimals">decimals</a></h3>
 <pre><code class="language-solidity">function decimals() external view returns (uint8);
 </code></pre>
@@ -1403,13 +1497,13 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
     view
     returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-6"><a class="header" href="#contents-6">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-7"><a class="header" href="#contents-7">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Cconnext/IConnext.sol%5Cinterface.IConnext.html">IConnext</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iconnext"><a class="header" href="#iconnext">IConnext</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Cconnext%5CIConnext.sol">Git Source</a></p>
-<h2 id="functions-5"><a class="header" href="#functions-5">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Cconnext%5CIConnext.sol">Git Source</a></p>
+<h2 id="functions-7"><a class="header" href="#functions-7">Functions</a></h2>
 <h3 id="xcall"><a class="header" href="#xcall">xcall</a></h3>
 <pre><code class="language-solidity">function xcall(
     uint32 _destination,
@@ -1447,14 +1541,14 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <h3 id="domain"><a class="header" href="#domain">domain</a></h3>
 <pre><code class="language-solidity">function domain() external view returns (uint256);
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-7"><a class="header" href="#contents-7">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-8"><a class="header" href="#contents-8">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Ceverclear/IEverclearSpoke.sol%5Cinterface.IEverclearSpoke.html">IEverclearSpoke</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Ceverclear/IFeeAdapter.sol%5Cinterface.IFeeAdapter.html">IFeeAdapter</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ieverclearspoke"><a class="header" href="#ieverclearspoke">IEverclearSpoke</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Ceverclear%5CIEverclearSpoke.sol">Git Source</a></p>
-<h2 id="functions-6"><a class="header" href="#functions-6">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Ceverclear%5CIEverclearSpoke.sol">Git Source</a></p>
+<h2 id="functions-8"><a class="header" href="#functions-8">Functions</a></h2>
 <h3 id="newintent"><a class="header" href="#newintent">newIntent</a></h3>
 <p>Creates a new intent</p>
 <pre><code class="language-solidity">function newIntent(
@@ -1493,8 +1587,8 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ifeeadapter"><a class="header" href="#ifeeadapter">IFeeAdapter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Ceverclear%5CIFeeAdapter.sol">Git Source</a></p>
-<h2 id="functions-7"><a class="header" href="#functions-7">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Ceverclear%5CIFeeAdapter.sol">Git Source</a></p>
+<h2 id="functions-9"><a class="header" href="#functions-9">Functions</a></h2>
 <h3 id="newintent-1"><a class="header" href="#newintent-1">newIntent</a></h3>
 <pre><code class="language-solidity">function newIntent(
     uint32[] memory _destinations,
@@ -1532,14 +1626,14 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
     bytes sig;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-8"><a class="header" href="#contents-8">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-9"><a class="header" href="#contents-9">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero//src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2">v2</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero/ILayerZeroEndpoint.sol%5Cinterface.ILayerZeroEndpoint.html">ILayerZeroEndpoint</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero/ILayerZeroReceiver.sol%5Cinterface.ILayerZeroReceiver.html">ILayerZeroReceiver</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero/ILayerZeroUserApplicationConfig.sol%5Cinterface.ILayerZeroUserApplicationConfig.html">ILayerZeroUserApplicationConfig</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-9"><a class="header" href="#contents-9">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-10"><a class="header" href="#contents-10">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2/ILayerZeroEndpointV2.sol%5Cstruct.MessagingParams.html">MessagingParams</a></li>
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2/ILayerZeroEndpointV2.sol%5Cstruct.MessagingReceipt.html">MessagingReceipt</a></li>
@@ -1561,7 +1655,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <li><a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2/IMessagingContext.sol%5Cinterface.IMessagingContext.html">IMessagingContext</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingparams"><a class="header" href="#messagingparams">MessagingParams</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingParams {
     uint32 dstEid;
     bytes32 receiver;
@@ -1571,7 +1665,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingreceipt"><a class="header" href="#messagingreceipt">MessagingReceipt</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingReceipt {
     bytes32 guid;
     uint64 nonce;
@@ -1579,14 +1673,14 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingfee"><a class="header" href="#messagingfee">MessagingFee</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingFee {
     uint256 nativeFee;
     uint256 lzTokenFee;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="origin"><a class="header" href="#origin">Origin</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct Origin {
     uint32 srcEid;
     bytes32 sender;
@@ -1594,10 +1688,10 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroendpointv2"><a class="header" href="#ilayerzeroendpointv2">ILayerZeroEndpointV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol//src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLibManager.sol%5Cinterface.IMessageLibManager.html">IMessageLibManager</a>, <a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol//src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingComposer.sol%5Cinterface.IMessagingComposer.html">IMessagingComposer</a>, <a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol//src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingChannel.sol%5Cinterface.IMessagingChannel.html">IMessagingChannel</a>, <a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroEndpointV2.sol//src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingContext.sol%5Cinterface.IMessagingContext.html">IMessagingContext</a></p>
-<h2 id="functions-8"><a class="header" href="#functions-8">Functions</a></h2>
+<h2 id="functions-10"><a class="header" href="#functions-10">Functions</a></h2>
 <h3 id="quote"><a class="header" href="#quote">quote</a></h3>
 <pre><code class="language-solidity">function quote(MessagingParams calldata _params, address _sender) external view returns (MessagingFee memory);
 </code></pre>
@@ -1670,7 +1764,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 <pre><code class="language-solidity">event DelegateSet(address sender, address delegate);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sendparam"><a class="header" href="#sendparam">SendParam</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
 <p><em>Struct representing token parameters for the OFT send() operation.</em></p>
 <pre><code class="language-solidity">struct SendParam {
     uint32 dstEid;
@@ -1683,7 +1777,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftlimit"><a class="header" href="#oftlimit">OFTLimit</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
 <p><em>Struct representing OFT limit information.</em></p>
 <p><em>These amounts can change dynamically and are up the the specific oft implementation.</em></p>
 <pre><code class="language-solidity">struct OFTLimit {
@@ -1692,7 +1786,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftreceipt"><a class="header" href="#oftreceipt">OFTReceipt</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
 <p><em>Struct representing OFT receipt information.</em></p>
 <pre><code class="language-solidity">struct OFTReceipt {
     uint256 amountSentLD;
@@ -1700,7 +1794,7 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftfeedetail"><a class="header" href="#oftfeedetail">OFTFeeDetail</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
 <p><em>Struct representing OFT fee details.</em></p>
 <p><em>Future proof mechanism to provide a standardized way to communicate fees to things like a UI.</em></p>
 <pre><code class="language-solidity">struct OFTFeeDetail {
@@ -1709,11 +1803,11 @@ whereas <code>borrowBalance</code> is the amount of underlying that the account 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzerooft"><a class="header" href="#ilayerzerooft">ILayerZeroOFT</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroOFT.sol">Git Source</a></p>
 <p><em>Interface for the OftChain (OFT) token.</em></p>
 <p><em>Does not inherit ERC20 to accommodate usage by OFTAdapter as well.</em></p>
 <p><em>This specific interface ID is '0x02e49c2c'.</em></p>
-<h2 id="functions-9"><a class="header" href="#functions-9">Functions</a></h2>
+<h2 id="functions-11"><a class="header" href="#functions-11">Functions</a></h2>
 <h3 id="oftversion"><a class="header" href="#oftversion">oftVersion</a></h3>
 <p>Retrieves interfaceID and the version of the OFT.</p>
 <p><em>interfaceId: This specific interface ID is '0x02e49c2c'.</em></p>
@@ -1831,7 +1925,7 @@ without understanding the underlying token implementation.</em></p>
 <h3 id="oftreceived"><a class="header" href="#oftreceived">OFTReceived</a></h3>
 <pre><code class="language-solidity">event OFTReceived(bytes32 indexed guid, uint32 srcEid, address indexed toAddress, uint256 amountReceivedLD);
 </code></pre>
-<h2 id="errors-3"><a class="header" href="#errors-3">Errors</a></h2>
+<h2 id="errors-4"><a class="header" href="#errors-4">Errors</a></h2>
 <h3 id="invalidlocaldecimals"><a class="header" href="#invalidlocaldecimals">InvalidLocalDecimals</a></h3>
 <pre><code class="language-solidity">error InvalidLocalDecimals();
 </code></pre>
@@ -1839,8 +1933,8 @@ without understanding the underlying token implementation.</em></p>
 <pre><code class="language-solidity">error SlippageExceeded(uint256 amountLD, uint256 minAmountLD);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroreceiverv2"><a class="header" href="#ilayerzeroreceiverv2">ILayerZeroReceiverV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroReceiverV2.sol">Git Source</a></p>
-<h2 id="functions-10"><a class="header" href="#functions-10">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CILayerZeroReceiverV2.sol">Git Source</a></p>
+<h2 id="functions-12"><a class="header" href="#functions-12">Functions</a></h2>
 <h3 id="allowinitializepath"><a class="header" href="#allowinitializepath">allowInitializePath</a></h3>
 <pre><code class="language-solidity">function allowInitializePath(Origin calldata _origin) external view returns (bool);
 </code></pre>
@@ -1857,7 +1951,7 @@ without understanding the underlying token implementation.</em></p>
 ) external payable;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagelibtype"><a class="header" href="#messagelibtype">MessageLibType</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLib.sol">Git Source</a></p>
 <pre><code class="language-solidity">enum MessageLibType {
     Send,
     Receive,
@@ -1865,10 +1959,10 @@ without understanding the underlying token implementation.</em></p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagelib"><a class="header" href="#imessagelib">IMessageLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLib.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 IERC165</p>
-<h2 id="functions-11"><a class="header" href="#functions-11">Functions</a></h2>
+<h2 id="functions-13"><a class="header" href="#functions-13">Functions</a></h2>
 <h3 id="setconfig"><a class="header" href="#setconfig">setConfig</a></h3>
 <pre><code class="language-solidity">function setConfig(address _oapp, SetConfigParam[] calldata _config) external;
 </code></pre>
@@ -1885,7 +1979,7 @@ IERC165</p>
 <pre><code class="language-solidity">function messageLibType() external view returns (MessageLibType);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="setconfigparam"><a class="header" href="#setconfigparam">SetConfigParam</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLibManager.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLibManager.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct SetConfigParam {
     uint32 eid;
     uint32 configType;
@@ -1893,8 +1987,8 @@ IERC165</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagelibmanager"><a class="header" href="#imessagelibmanager">IMessageLibManager</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLibManager.sol">Git Source</a></p>
-<h2 id="functions-12"><a class="header" href="#functions-12">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessageLibManager.sol">Git Source</a></p>
+<h2 id="functions-14"><a class="header" href="#functions-14">Functions</a></h2>
 <h3 id="registerlibrary"><a class="header" href="#registerlibrary">registerLibrary</a></h3>
 <pre><code class="language-solidity">function registerLibrary(address _lib) external;
 </code></pre>
@@ -1989,8 +2083,8 @@ IERC165</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingchannel"><a class="header" href="#imessagingchannel">IMessagingChannel</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingChannel.sol">Git Source</a></p>
-<h2 id="functions-13"><a class="header" href="#functions-13">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingChannel.sol">Git Source</a></p>
+<h2 id="functions-15"><a class="header" href="#functions-15">Functions</a></h2>
 <h3 id="eid"><a class="header" href="#eid">eid</a></h3>
 <pre><code class="language-solidity">function eid() external view returns (uint32);
 </code></pre>
@@ -2032,8 +2126,8 @@ IERC165</p>
 <pre><code class="language-solidity">event PacketBurnt(uint32 srcEid, bytes32 sender, address receiver, uint64 nonce, bytes32 payloadHash);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingcomposer"><a class="header" href="#imessagingcomposer">IMessagingComposer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingComposer.sol">Git Source</a></p>
-<h2 id="functions-14"><a class="header" href="#functions-14">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingComposer.sol">Git Source</a></p>
+<h2 id="functions-16"><a class="header" href="#functions-16">Functions</a></h2>
 <h3 id="composequeue"><a class="header" href="#composequeue">composeQueue</a></h3>
 <pre><code class="language-solidity">function composeQueue(address _from, address _to, bytes32 _guid, uint16 _index)
     external
@@ -2075,8 +2169,8 @@ IERC165</p>
 );
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingcontext"><a class="header" href="#imessagingcontext">IMessagingContext</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingContext.sol">Git Source</a></p>
-<h2 id="functions-15"><a class="header" href="#functions-15">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5Cv2%5CIMessagingContext.sol">Git Source</a></p>
+<h2 id="functions-17"><a class="header" href="#functions-17">Functions</a></h2>
 <h3 id="issendingmessage"><a class="header" href="#issendingmessage">isSendingMessage</a></h3>
 <pre><code class="language-solidity">function isSendingMessage() external view returns (bool);
 </code></pre>
@@ -2084,12 +2178,12 @@ IERC165</p>
 <pre><code class="language-solidity">function getSendContext() external view returns (uint32 dstEid, address sender);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroendpoint"><a class="header" href="#ilayerzeroendpoint">ILayerZeroEndpoint</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroEndpoint.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroEndpoint.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroEndpoint.sol//src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroUserApplicationConfig.sol%5Cinterface.ILayerZeroUserApplicationConfig.html">ILayerZeroUserApplicationConfig</a></p>
 <p><em>is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroEndpoint.sol)</em></p>
-<h2 id="functions-16"><a class="header" href="#functions-16">Functions</a></h2>
+<h2 id="functions-18"><a class="header" href="#functions-18">Functions</a></h2>
 <h3 id="send-2"><a class="header" href="#send-2">send</a></h3>
 <pre><code class="language-solidity">function send(
     uint16 dstChainId_,
@@ -2159,18 +2253,18 @@ IERC165</p>
 <pre><code class="language-solidity">function getReceiveVersion(address userApplication_) external view returns (uint16);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroreceiver"><a class="header" href="#ilayerzeroreceiver">ILayerZeroReceiver</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroReceiver.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroReceiver.sol">Git Source</a></p>
 <p><em>is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroReceiver.sol)</em></p>
-<h2 id="functions-17"><a class="header" href="#functions-17">Functions</a></h2>
+<h2 id="functions-19"><a class="header" href="#functions-19">Functions</a></h2>
 <h3 id="lzreceive-2"><a class="header" href="#lzreceive-2">lzReceive</a></h3>
 <pre><code class="language-solidity">function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzerouserapplicationconfig"><a class="header" href="#ilayerzerouserapplicationconfig">ILayerZeroUserApplicationConfig</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroUserApplicationConfig.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Clayerzero%5CILayerZeroUserApplicationConfig.sol">Git Source</a></p>
 <p><em>is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroUserApplicationConfig.sol)</em></p>
-<h2 id="functions-18"><a class="header" href="#functions-18">Functions</a></h2>
+<h2 id="functions-20"><a class="header" href="#functions-20">Functions</a></h2>
 <h3 id="setconfig-2"><a class="header" href="#setconfig-2">setConfig</a></h3>
 <pre><code class="language-solidity">function setConfig(uint16 _version, uint16 _chainId, uint256 _configType, bytes calldata _config) external;
 </code></pre>
@@ -2183,13 +2277,13 @@ IERC165</p>
 <h3 id="forceresumereceive"><a class="header" href="#forceresumereceive">forceResumeReceive</a></h3>
 <pre><code class="language-solidity">function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external;
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-10"><a class="header" href="#contents-10">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-11"><a class="header" href="#contents-11">Contents</a></h1>
 <ul>
 <li><a href="src%5Cinterfaces%5Cexternal%5Cpoh/IPohVerifier.sol%5Cinterface.IPohVerifier.html">IPohVerifier</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ipohverifier"><a class="header" href="#ipohverifier">IPohVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5Cexternal%5Cpoh%5CIPohVerifier.sol">Git Source</a></p>
-<h2 id="functions-19"><a class="header" href="#functions-19">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5Cexternal%5Cpoh%5CIPohVerifier.sol">Git Source</a></p>
+<h2 id="functions-21"><a class="header" href="#functions-21">Functions</a></h2>
 <h3 id="verify-1"><a class="header" href="#verify-1">verify</a></h3>
 <p>Check if the provided signature has been signed by signer</p>
 <p><em>human is supposed to be a POH address, this is what is being signed by the POH API</em></p>
@@ -2210,9 +2304,35 @@ IERC165</p>
 <p>Returns the signer's address</p>
 <pre><code class="language-solidity">function getSigner() external view returns (address);
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="iblacklister"><a class="header" href="#iblacklister">IBlacklister</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIBlacklister.sol">Git Source</a></p>
+<h2 id="functions-22"><a class="header" href="#functions-22">Functions</a></h2>
+<h3 id="getblacklistedaddresses-1"><a class="header" href="#getblacklistedaddresses-1">getBlacklistedAddresses</a></h3>
+<p>Returns the list of currently blacklisted addresses.</p>
+<pre><code class="language-solidity">function getBlacklistedAddresses() external view returns (address[] memory);
+</code></pre>
+<h3 id="isblacklisted-1"><a class="header" href="#isblacklisted-1">isBlacklisted</a></h3>
+<p>Returns whether a user is currently blacklisted.</p>
+<pre><code class="language-solidity">function isBlacklisted(address user) external view returns (bool);
+</code></pre>
+<h3 id="blacklist-1"><a class="header" href="#blacklist-1">blacklist</a></h3>
+<p>Blacklists a user immediately (onlyOwner).</p>
+<pre><code class="language-solidity">function blacklist(address user) external;
+</code></pre>
+<h3 id="unblacklist-1"><a class="header" href="#unblacklist-1">unblacklist</a></h3>
+<p>Removes a user from the blacklist (onlyOwner).</p>
+<pre><code class="language-solidity">function unblacklist(address user) external;
+</code></pre>
+<h2 id="events-7"><a class="header" href="#events-7">Events</a></h2>
+<h3 id="blacklisted"><a class="header" href="#blacklisted">Blacklisted</a></h3>
+<pre><code class="language-solidity">event Blacklisted(address indexed user);
+</code></pre>
+<h3 id="unblacklisted"><a class="header" href="#unblacklisted">Unblacklisted</a></h3>
+<pre><code class="language-solidity">event Unblacklisted(address indexed user);
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ibridge"><a class="header" href="#ibridge">IBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIBridge.sol">Git Source</a></p>
-<h2 id="functions-20"><a class="header" href="#functions-20">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIBridge.sol">Git Source</a></p>
+<h2 id="functions-23"><a class="header" href="#functions-23">Functions</a></h2>
 <h3 id="getfee"><a class="header" href="#getfee">getFee</a></h3>
 <p>computes fee for bridge operation</p>
 <pre><code class="language-solidity">function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData) external view returns (uint256);
@@ -2245,8 +2365,8 @@ IERC165</p>
 <tr><td><code>_bridgeData</code></td><td><code>bytes</code></td><td>specific bridge datas</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="idefaultadapter"><a class="header" href="#idefaultadapter">IDefaultAdapter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIDefaultAdapter.sol">Git Source</a></p>
-<h2 id="functions-21"><a class="header" href="#functions-21">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIDefaultAdapter.sol">Git Source</a></p>
+<h2 id="functions-24"><a class="header" href="#functions-24">Functions</a></h2>
 <h3 id="decimals-1"><a class="header" href="#decimals-1">decimals</a></h3>
 <pre><code class="language-solidity">function decimals() external view returns (uint8);
 </code></pre>
@@ -2271,15 +2391,15 @@ IERC165</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="igasfeeshelper"><a class="header" href="#igasfeeshelper">IGasFeesHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIGasFeesHelper.sol">Git Source</a></p>
-<h2 id="functions-22"><a class="header" href="#functions-22">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIGasFeesHelper.sol">Git Source</a></p>
+<h2 id="functions-25"><a class="header" href="#functions-25">Functions</a></h2>
 <h3 id="gasfees"><a class="header" href="#gasfees">gasFees</a></h3>
 <pre><code class="language-solidity">function gasFees(uint32 dstChainId) external view returns (uint256);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iinterestratemodel"><a class="header" href="#iinterestratemodel">IInterestRateModel</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIInterestRateModel.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIInterestRateModel.sol">Git Source</a></p>
 <p>Interface for the interest rate contracts</p>
-<h2 id="functions-23"><a class="header" href="#functions-23">Functions</a></h2>
+<h2 id="functions-26"><a class="header" href="#functions-26">Functions</a></h2>
 <h3 id="isinterestratemodel-1"><a class="header" href="#isinterestratemodel-1">isInterestRateModel</a></h3>
 <p>Should return true</p>
 <pre><code class="language-solidity">function isInterestRateModel() external view returns (bool);
@@ -2390,7 +2510,7 @@ IERC165</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-7"><a class="header" href="#events-7">Events</a></h2>
+<h2 id="events-8"><a class="header" href="#events-8">Events</a></h2>
 <h3 id="newinterestparams"><a class="header" href="#newinterestparams">NewInterestParams</a></h3>
 <p>Emitted when interest rate parameters are updated</p>
 <pre><code class="language-solidity">event NewInterestParams(
@@ -2405,7 +2525,7 @@ IERC165</p>
 <tr><td><code>kink</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier is applied</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioperatordata"><a class="header" href="#ioperatordata">IOperatorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
 <h2 id="structs-6"><a class="header" href="#structs-6">Structs</a></h2>
 <h3 id="market"><a class="header" href="#market">Market</a></h3>
 <pre><code class="language-solidity">struct Market {
@@ -2416,8 +2536,8 @@ IERC165</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ioperatordefender"><a class="header" href="#ioperatordefender">IOperatorDefender</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
-<h2 id="functions-24"><a class="header" href="#functions-24">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<h2 id="functions-27"><a class="header" href="#functions-27">Functions</a></h2>
 <h3 id="beforerebalancing-1"><a class="header" href="#beforerebalancing-1">beforeRebalancing</a></h3>
 <p>Checks if the account should be allowed to rebalance tokens</p>
 <pre><code class="language-solidity">function beforeRebalancing(address mToken) external;
@@ -2527,13 +2647,13 @@ IERC165</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>New amount</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioperator"><a class="header" href="#ioperator">IOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
-<h2 id="functions-25"><a class="header" href="#functions-25">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<h2 id="functions-28"><a class="header" href="#functions-28">Functions</a></h2>
 <h3 id="userwhitelisted-2"><a class="header" href="#userwhitelisted-2">userWhitelisted</a></h3>
 <p>Returns true/false for user</p>
 <pre><code class="language-solidity">function userWhitelisted(address _user) external view returns (bool);
 </code></pre>
-<h3 id="isoperator-1"><a class="header" href="#isoperator-1">isOperator</a></h3>
+<h3 id="isoperator-2"><a class="header" href="#isoperator-2">isOperator</a></h3>
 <p>Should return true</p>
 <pre><code class="language-solidity">function isOperator() external view returns (bool);
 </code></pre>
@@ -2563,9 +2683,13 @@ IERC165</p>
 <tr><td><code>_type</code></td><td><code>ImTokenOperationTypes.OperationType</code></td><td>the operation type</td></tr>
 </tbody></table>
 </div>
-<h3 id="rolesoperator-1"><a class="header" href="#rolesoperator-1">rolesOperator</a></h3>
-<p>Roles manager</p>
+<h3 id="rolesoperator-2"><a class="header" href="#rolesoperator-2">rolesOperator</a></h3>
+<p>Roles</p>
 <pre><code class="language-solidity">function rolesOperator() external view returns (IRoles);
+</code></pre>
+<h3 id="blacklistoperator-1"><a class="header" href="#blacklistoperator-1">blacklistOperator</a></h3>
+<p>Blacklist</p>
+<pre><code class="language-solidity">function blacklistOperator() external view returns (IBlacklister);
 </code></pre>
 <h3 id="oracleoperator-1"><a class="header" href="#oracleoperator-1">oracleOperator</a></h3>
 <p>Oracle which gives the price of any given asset</p>
@@ -2766,9 +2890,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>suppliers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by supplying</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioracleoperator"><a class="header" href="#ioracleoperator">IOracleOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIOracleOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIOracleOperator.sol">Git Source</a></p>
 <p>Prices are returned in USD</p>
-<h2 id="functions-26"><a class="header" href="#functions-26">Functions</a></h2>
+<h2 id="functions-29"><a class="header" href="#functions-29">Functions</a></h2>
 <h3 id="getprice"><a class="header" href="#getprice">getPrice</a></h3>
 <p>Get the price of a mToken asset</p>
 <pre><code class="language-solidity">function getPrice(address mToken) external view returns (uint256);
@@ -2797,16 +2921,16 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iownable"><a class="header" href="#iownable">IOwnable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIOwnable.sol">Git Source</a></p>
-<h2 id="functions-27"><a class="header" href="#functions-27">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIOwnable.sol">Git Source</a></p>
+<h2 id="functions-30"><a class="header" href="#functions-30">Functions</a></h2>
 <h3 id="transferownership"><a class="header" href="#transferownership">transferOwnership</a></h3>
 <pre><code class="language-solidity">function transferOwnership(address newOwner) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ipauser"><a class="header" href="#ipauser">IPauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIPauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIPauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Cinterfaces%5CIPauser.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
-<h2 id="functions-28"><a class="header" href="#functions-28">Functions</a></h2>
+<h2 id="functions-31"><a class="header" href="#functions-31">Functions</a></h2>
 <h3 id="emergencypausemarket"><a class="header" href="#emergencypausemarket">emergencyPauseMarket</a></h3>
 <p>pauses all operations for a market</p>
 <pre><code class="language-solidity">function emergencyPauseMarket(address _market) external;
@@ -2830,7 +2954,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p>pauses all operations for all registered markets</p>
 <pre><code class="language-solidity">function emergencyPauseAll() external;
 </code></pre>
-<h2 id="events-8"><a class="header" href="#events-8">Events</a></h2>
+<h2 id="events-9"><a class="header" href="#events-9">Events</a></h2>
 <h3 id="pauseall"><a class="header" href="#pauseall">PauseAll</a></h3>
 <pre><code class="language-solidity">event PauseAll();
 </code></pre>
@@ -2846,7 +2970,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <h3 id="marketpausedfor"><a class="header" href="#marketpausedfor">MarketPausedFor</a></h3>
 <pre><code class="language-solidity">event MarketPausedFor(address indexed market, OperationType pauseType);
 </code></pre>
-<h2 id="errors-4"><a class="header" href="#errors-4">Errors</a></h2>
+<h2 id="errors-5"><a class="header" href="#errors-5">Errors</a></h2>
 <h3 id="pauser_entrynotfound"><a class="header" href="#pauser_entrynotfound">Pauser_EntryNotFound</a></h3>
 <pre><code class="language-solidity">error Pauser_EntryNotFound();
 </code></pre>
@@ -2878,14 +3002,14 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irebalancemarket"><a class="header" href="#irebalancemarket">IRebalanceMarket</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIRebalancer.sol">Git Source</a></p>
-<h2 id="functions-29"><a class="header" href="#functions-29">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIRebalancer.sol">Git Source</a></p>
+<h2 id="functions-32"><a class="header" href="#functions-32">Functions</a></h2>
 <h3 id="extractforrebalancing"><a class="header" href="#extractforrebalancing">extractForRebalancing</a></h3>
 <pre><code class="language-solidity">function extractForRebalancing(uint256 amount) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irebalancer"><a class="header" href="#irebalancer">IRebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIRebalancer.sol">Git Source</a></p>
-<h2 id="functions-30"><a class="header" href="#functions-30">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIRebalancer.sol">Git Source</a></p>
+<h2 id="functions-33"><a class="header" href="#functions-33">Functions</a></h2>
 <h3 id="nonce"><a class="header" href="#nonce">nonce</a></h3>
 <p>returns current nonce</p>
 <pre><code class="language-solidity">function nonce() external view returns (uint256);
@@ -2910,7 +3034,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>msg</code></td><td><code>Msg</code></td><td>the message data</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-9"><a class="header" href="#events-9">Events</a></h2>
+<h2 id="events-10"><a class="header" href="#events-10">Events</a></h2>
 <h3 id="bridgewhitelistedstatusupdated"><a class="header" href="#bridgewhitelistedstatusupdated">BridgeWhitelistedStatusUpdated</a></h3>
 <pre><code class="language-solidity">event BridgeWhitelistedStatusUpdated(address indexed bridge, bool status);
 </code></pre>
@@ -2934,7 +3058,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <h3 id="allowedlistupdated"><a class="header" href="#allowedlistupdated">AllowedListUpdated</a></h3>
 <pre><code class="language-solidity">event AllowedListUpdated(address[] list, bool status);
 </code></pre>
-<h2 id="errors-5"><a class="header" href="#errors-5">Errors</a></h2>
+<h2 id="errors-6"><a class="header" href="#errors-6">Errors</a></h2>
 <h3 id="rebalancer_notauthorized"><a class="header" href="#rebalancer_notauthorized">Rebalancer_NotAuthorized</a></h3>
 <pre><code class="language-solidity">error Rebalancer_NotAuthorized();
 </code></pre>
@@ -2969,7 +3093,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributordata"><a class="header" href="#irewarddistributordata">IRewardDistributorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
 <h2 id="structs-9"><a class="header" href="#structs-9">Structs</a></h2>
 <h3 id="rewardmarketstate"><a class="header" href="#rewardmarketstate">RewardMarketState</a></h3>
 <pre><code class="language-solidity">struct RewardMarketState {
@@ -2989,8 +3113,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributor"><a class="header" href="#irewarddistributor">IRewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
-<h2 id="functions-31"><a class="header" href="#functions-31">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
+<h2 id="functions-34"><a class="header" href="#functions-34">Functions</a></h2>
 <h3 id="operator-1"><a class="header" href="#operator-1">operator</a></h3>
 <p>The operator that rewards are distributed to</p>
 <pre><code class="language-solidity">function operator() external view returns (address);
@@ -3037,7 +3161,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>holders</code></td><td><code>address[]</code></td><td>the accounts to claim for</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-10"><a class="header" href="#events-10">Events</a></h2>
+<h2 id="events-11"><a class="header" href="#events-11">Events</a></h2>
 <h3 id="rewardaccrued"><a class="header" href="#rewardaccrued">RewardAccrued</a></h3>
 <pre><code class="language-solidity">event RewardAccrued(address indexed rewardToken, address indexed user, uint256 deltaAccrued, uint256 totalAccrued);
 </code></pre>
@@ -3063,8 +3187,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iroles"><a class="header" href="#iroles">IRoles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CIRoles.sol">Git Source</a></p>
-<h2 id="functions-32"><a class="header" href="#functions-32">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CIRoles.sol">Git Source</a></p>
+<h2 id="functions-35"><a class="header" href="#functions-35">Functions</a></h2>
 <h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
 <p>Returns REBALANCER role</p>
 <pre><code class="language-solidity">function REBALANCER() external view returns (bytes32);
@@ -3117,6 +3241,10 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p>Returns GUARDIAN_ORACLE role</p>
 <pre><code class="language-solidity">function GUARDIAN_ORACLE() external view returns (bytes32);
 </code></pre>
+<h3 id="guardian_blacklist"><a class="header" href="#guardian_blacklist">GUARDIAN_BLACKLIST</a></h3>
+<p>Returns GUARDIAN_BLACKLIST role</p>
+<pre><code class="language-solidity">function GUARDIAN_BLACKLIST() external view returns (bytes32);
+</code></pre>
 <h3 id="isallowedfor"><a class="header" href="#isallowedfor">isAllowedFor</a></h3>
 <p>Returns allowance status for a contract and a role</p>
 <pre><code class="language-solidity">function isAllowedFor(address _contract, bytes32 _role) external view returns (bool);
@@ -3127,13 +3255,13 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>_role</code></td><td><code>bytes32</code></td><td>the bytes32 role</td></tr>
 </tbody></table>
 </div>
-<h2 id="errors-6"><a class="header" href="#errors-6">Errors</a></h2>
+<h2 id="errors-7"><a class="header" href="#errors-7">Errors</a></h2>
 <h3 id="roles_inputnotvalid"><a class="header" href="#roles_inputnotvalid">Roles_InputNotValid</a></h3>
 <pre><code class="language-solidity">error Roles_InputNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imerc20"><a class="header" href="#imerc20">ImErc20</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImErc20.sol">Git Source</a></p>
-<h2 id="functions-33"><a class="header" href="#functions-33">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImErc20.sol">Git Source</a></p>
+<h2 id="functions-36"><a class="header" href="#functions-36">Functions</a></h2>
 <h3 id="mint"><a class="header" href="#mint">mint</a></h3>
 <p>Sender supplies assets into the market and receives mTokens in exchange</p>
 <p><em>Accrues interest whether or not the operation succeeds, unless reverted</em></p>
@@ -3215,8 +3343,8 @@ The collateral seized is transferred to the liquidator.</p>
 <tr><td><code>addAmount</code></td><td><code>uint256</code></td><td>The amount fo underlying token to add as reserves</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imerc20host"><a class="header" href="#imerc20host">ImErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImErc20Host.sol">Git Source</a></p>
-<h2 id="functions-34"><a class="header" href="#functions-34">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImErc20Host.sol">Git Source</a></p>
+<h2 id="functions-37"><a class="header" href="#functions-37">Functions</a></h2>
 <h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
 <p>Returns the proof data journal</p>
 <pre><code class="language-solidity">function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
@@ -3322,7 +3450,7 @@ The collateral seized is transferred to the liquidator.</p>
 <tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>The destination chain to recieve funds</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-11"><a class="header" href="#events-11">Events</a></h2>
+<h2 id="events-12"><a class="header" href="#events-12">Events</a></h2>
 <h3 id="allowedcallerupdated"><a class="header" href="#allowedcallerupdated">AllowedCallerUpdated</a></h3>
 <p>Emitted when a user updates allowed callers</p>
 <pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
@@ -3385,7 +3513,7 @@ The collateral seized is transferred to the liquidator.</p>
 <h3 id="merc20host_borrowmigration"><a class="header" href="#merc20host_borrowmigration">mErc20Host_BorrowMigration</a></h3>
 <pre><code class="language-solidity">event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
 </code></pre>
-<h2 id="errors-7"><a class="header" href="#errors-7">Errors</a></h2>
+<h2 id="errors-8"><a class="header" href="#errors-8">Errors</a></h2>
 <h3 id="merc20host_proofgenerationinputnotvalid"><a class="header" href="#merc20host_proofgenerationinputnotvalid">mErc20Host_ProofGenerationInputNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>
 <pre><code class="language-solidity">error mErc20Host_ProofGenerationInputNotValid();
@@ -3439,7 +3567,7 @@ The collateral seized is transferred to the liquidator.</p>
 <pre><code class="language-solidity">error mErc20Host_ActionNotAvailable();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenoperationtypes"><a class="header" href="#imtokenoperationtypes">ImTokenOperationTypes</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
 <h2 id="enums-2"><a class="header" href="#enums-2">Enums</a></h2>
 <h3 id="operationtype"><a class="header" href="#operationtype">OperationType</a></h3>
 <pre><code class="language-solidity">enum OperationType {
@@ -3458,15 +3586,15 @@ The collateral seized is transferred to the liquidator.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtokendelegator"><a class="header" href="#imtokendelegator">ImTokenDelegator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
-<h2 id="functions-35"><a class="header" href="#functions-35">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<h2 id="functions-38"><a class="header" href="#functions-38">Functions</a></h2>
 <h3 id="delegate"><a class="header" href="#delegate">delegate</a></h3>
 <p>Non-standard token able to delegate</p>
 <pre><code class="language-solidity">function delegate(address delegatee) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenminimal"><a class="header" href="#imtokenminimal">ImTokenMinimal</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
-<h2 id="functions-36"><a class="header" href="#functions-36">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<h2 id="functions-39"><a class="header" href="#functions-39">Functions</a></h2>
 <h3 id="name-2"><a class="header" href="#name-2">name</a></h3>
 <p>EIP-20 token name for this token</p>
 <pre><code class="language-solidity">function name() external view returns (string memory);
@@ -3501,11 +3629,11 @@ The collateral seized is transferred to the liquidator.</p>
 <pre><code class="language-solidity">function underlying() external view returns (address);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtoken"><a class="header" href="#imtoken">ImToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Cinterfaces%5CImToken.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenMinimal.html">ImTokenMinimal</a></p>
-<h2 id="functions-37"><a class="header" href="#functions-37">Functions</a></h2>
-<h3 id="rolesoperator-2"><a class="header" href="#rolesoperator-2">rolesOperator</a></h3>
+<h2 id="functions-40"><a class="header" href="#functions-40">Functions</a></h2>
+<h3 id="rolesoperator-3"><a class="header" href="#rolesoperator-3">rolesOperator</a></h3>
 <p>Roles manager</p>
 <pre><code class="language-solidity">function rolesOperator() external view returns (IRoles);
 </code></pre>
@@ -3758,11 +3886,15 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <tr><td><code>reduceAmount</code></td><td><code>uint256</code></td><td>Amount of reduction to reserves</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imtokengateway"><a class="header" href="#imtokengateway">ImTokenGateway</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cinterfaces%5CImTokenGateway.sol">Git Source</a></p>
-<h2 id="functions-38"><a class="header" href="#functions-38">Functions</a></h2>
-<h3 id="rolesoperator-3"><a class="header" href="#rolesoperator-3">rolesOperator</a></h3>
-<p>Roles manager</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cinterfaces%5CImTokenGateway.sol">Git Source</a></p>
+<h2 id="functions-41"><a class="header" href="#functions-41">Functions</a></h2>
+<h3 id="rolesoperator-4"><a class="header" href="#rolesoperator-4">rolesOperator</a></h3>
+<p>Roles</p>
 <pre><code class="language-solidity">function rolesOperator() external view returns (IRoles);
+</code></pre>
+<h3 id="blacklistoperator-2"><a class="header" href="#blacklistoperator-2">blacklistOperator</a></h3>
+<p>Blacklist</p>
+<pre><code class="language-solidity">function blacklistOperator() external view returns (IBlacklister);
 </code></pre>
 <h3 id="underlying-1"><a class="header" href="#underlying-1">underlying</a></h3>
 <p>Returns the address of the underlying token</p>
@@ -3847,7 +3979,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver address</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-12"><a class="header" href="#events-12">Events</a></h2>
+<h2 id="events-13"><a class="header" href="#events-13">Events</a></h2>
 <h3 id="allowedcallerupdated-1"><a class="header" href="#allowedcallerupdated-1">AllowedCallerUpdated</a></h3>
 <p>Emitted when a user updates allowed callers</p>
 <pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
@@ -3910,7 +4042,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <h3 id="mtokengateway_whitelistdisabled"><a class="header" href="#mtokengateway_whitelistdisabled">mTokenGateway_WhitelistDisabled</a></h3>
 <pre><code class="language-solidity">event mTokenGateway_WhitelistDisabled();
 </code></pre>
-<h2 id="errors-8"><a class="header" href="#errors-8">Errors</a></h2>
+<h2 id="errors-9"><a class="header" href="#errors-9">Errors</a></h2>
 <h3 id="mtokengateway_chainnotvalid"><a class="header" href="#mtokengateway_chainnotvalid">mTokenGateway_ChainNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>
 <pre><code class="language-solidity">error mTokenGateway_ChainNotValid();
@@ -3967,7 +4099,11 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <p>Thrown when user is not whitelisted</p>
 <pre><code class="language-solidity">error mTokenGateway_UserNotWhitelisted();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-11"><a class="header" href="#contents-11">Contents</a></h1>
+<h3 id="mtokengateway_userblacklisted"><a class="header" href="#mtokengateway_userblacklisted">mTokenGateway_UserBlacklisted</a></h3>
+<p>Thrown when user is blacklisted</p>
+<pre><code class="language-solidity">error mTokenGateway_UserBlacklisted();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-12"><a class="header" href="#contents-12">Contents</a></h1>
 <ul>
 <li><a href="src%5Clibraries/Bytes32AddressLib.sol%5Clibrary.Bytes32AddressLib.html">Bytes32AddressLib</a></li>
 <li><a href="src%5Clibraries/BytesLib.sol%5Clibrary.BytesLib.html">BytesLib</a></li>
@@ -3978,11 +4114,11 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <li><a href="src%5Clibraries/mTokenProofDecoderLib.sol%5Clibrary.mTokenProofDecoderLib.html">mTokenProofDecoderLib</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="bytes32addresslib"><a class="header" href="#bytes32addresslib">Bytes32AddressLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CBytes32AddressLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CBytes32AddressLib.sol">Git Source</a></p>
 <p><strong>Author:</strong>
 Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32AddressLib.sol)</p>
 <p>Library for converting between addresses and bytes32 values.</p>
-<h2 id="functions-39"><a class="header" href="#functions-39">Functions</a></h2>
+<h2 id="functions-42"><a class="header" href="#functions-42">Functions</a></h2>
 <h3 id="fromlast20bytes"><a class="header" href="#fromlast20bytes">fromLast20Bytes</a></h3>
 <pre><code class="language-solidity">function fromLast20Bytes(bytes32 bytesValue) internal pure returns (address);
 </code></pre>
@@ -3990,8 +4126,8 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32A
 <pre><code class="language-solidity">function fillLast12Bytes(address addressValue) internal pure returns (bytes32);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="byteslib"><a class="header" href="#byteslib">BytesLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CBytesLib.sol">Git Source</a></p>
-<h2 id="functions-40"><a class="header" href="#functions-40">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CBytesLib.sol">Git Source</a></p>
+<h2 id="functions-43"><a class="header" href="#functions-43">Functions</a></h2>
 <h3 id="concat"><a class="header" href="#concat">concat</a></h3>
 <pre><code class="language-solidity">function concat(bytes memory _preBytes, bytes memory _postBytes) internal pure returns (bytes memory);
 </code></pre>
@@ -4038,18 +4174,18 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32A
 <pre><code class="language-solidity">function equalStorage(bytes storage _preBytes, bytes memory _postBytes) internal view returns (bool);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="create3"><a class="header" href="#create3">CREATE3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CCREATE3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CCREATE3.sol">Git Source</a></p>
 <p><strong>Authors:</strong>
 Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.sol), Modified from 0xSequence (https://github.com/0xSequence/create3/blob/master/contracts/Create3.sol)</p>
 <p>Deploy to deterministic addresses without an initcode factor.</p>
-<h2 id="state-variables-2"><a class="header" href="#state-variables-2">State Variables</a></h2>
+<h2 id="state-variables-3"><a class="header" href="#state-variables-3">State Variables</a></h2>
 <h3 id="proxy_bytecode"><a class="header" href="#proxy_bytecode">PROXY_BYTECODE</a></h3>
 <pre><code class="language-solidity">bytes internal constant PROXY_BYTECODE = hex"67363d3d37363d34f03d5260086018f3";
 </code></pre>
 <h3 id="proxy_bytecode_hash"><a class="header" href="#proxy_bytecode_hash">PROXY_BYTECODE_HASH</a></h3>
 <pre><code class="language-solidity">bytes32 internal constant PROXY_BYTECODE_HASH = keccak256(PROXY_BYTECODE);
 </code></pre>
-<h2 id="functions-41"><a class="header" href="#functions-41">Functions</a></h2>
+<h2 id="functions-44"><a class="header" href="#functions-44">Functions</a></h2>
 <h3 id="deploy"><a class="header" href="#deploy">deploy</a></h3>
 <pre><code class="language-solidity">function deploy(bytes32 salt, bytes memory creationCode, uint256 value) internal returns (address deployed);
 </code></pre>
@@ -4057,8 +4193,8 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <pre><code class="language-solidity">function getDeployed(bytes32 salt) internal view returns (address);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="commonlib"><a class="header" href="#commonlib">CommonLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CCommonLib.sol">Git Source</a></p>
-<h2 id="functions-42"><a class="header" href="#functions-42">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CCommonLib.sol">Git Source</a></p>
+<h2 id="functions-45"><a class="header" href="#functions-45">Functions</a></h2>
 <h3 id="checklengthmatch"><a class="header" href="#checklengthmatch">checkLengthMatch</a></h3>
 <pre><code class="language-solidity">function checkLengthMatch(uint256 l1, uint256 l2) internal pure;
 </code></pre>
@@ -4077,7 +4213,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
     IGasFeesHelper gasHelper
 ) internal view;
 </code></pre>
-<h2 id="errors-9"><a class="header" href="#errors-9">Errors</a></h2>
+<h2 id="errors-10"><a class="header" href="#errors-10">Errors</a></h2>
 <h3 id="commonlib_lengthmismatch"><a class="header" href="#commonlib_lengthmismatch">CommonLib_LengthMismatch</a></h3>
 <pre><code class="language-solidity">error CommonLib_LengthMismatch();
 </code></pre>
@@ -4091,18 +4227,18 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <pre><code class="language-solidity">error NotEnoughGasFee();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="itoken"><a class="header" href="#itoken">IToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
-<h2 id="functions-43"><a class="header" href="#functions-43">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
+<h2 id="functions-46"><a class="header" href="#functions-46">Functions</a></h2>
 <h3 id="approve-1"><a class="header" href="#approve-1">approve</a></h3>
 <pre><code class="language-solidity">function approve(address spender, uint256 amount) external returns (bool);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="safeapprove"><a class="header" href="#safeapprove">SafeApprove</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
-<h2 id="functions-44"><a class="header" href="#functions-44">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
+<h2 id="functions-47"><a class="header" href="#functions-47">Functions</a></h2>
 <h3 id="safeapprove-1"><a class="header" href="#safeapprove-1">safeApprove</a></h3>
 <pre><code class="language-solidity">function safeApprove(address token, address to, uint256 value) internal;
 </code></pre>
-<h2 id="errors-10"><a class="header" href="#errors-10">Errors</a></h2>
+<h2 id="errors-11"><a class="header" href="#errors-11">Errors</a></h2>
 <h3 id="safeapprove_nocontract"><a class="header" href="#safeapprove_nocontract">SafeApprove_NoContract</a></h3>
 <pre><code class="language-solidity">error SafeApprove_NoContract();
 </code></pre>
@@ -4110,12 +4246,12 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <pre><code class="language-solidity">error SafeApprove_Failed();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenproofdecoderlib"><a class="header" href="#mtokenproofdecoderlib">mTokenProofDecoderLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Clibraries%5CmTokenProofDecoderLib.sol">Git Source</a></p>
-<h2 id="state-variables-3"><a class="header" href="#state-variables-3">State Variables</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Clibraries%5CmTokenProofDecoderLib.sol">Git Source</a></p>
+<h2 id="state-variables-4"><a class="header" href="#state-variables-4">State Variables</a></h2>
 <h3 id="entry_size"><a class="header" href="#entry_size">ENTRY_SIZE</a></h3>
 <pre><code class="language-solidity">uint256 public constant ENTRY_SIZE = 113;
 </code></pre>
-<h2 id="functions-45"><a class="header" href="#functions-45">Functions</a></h2>
+<h2 id="functions-48"><a class="header" href="#functions-48">Functions</a></h2>
 <h3 id="decodejournal"><a class="header" href="#decodejournal">decodeJournal</a></h3>
 <pre><code class="language-solidity">function decodeJournal(bytes memory journalData)
     internal
@@ -4141,7 +4277,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
     bool L1inclusion
 ) internal pure returns (bytes memory);
 </code></pre>
-<h2 id="errors-11"><a class="header" href="#errors-11">Errors</a></h2>
+<h2 id="errors-12"><a class="header" href="#errors-12">Errors</a></h2>
 <h3 id="mtokenproofdecoderlib_chainnotfound"><a class="header" href="#mtokenproofdecoderlib_chainnotfound">mTokenProofDecoderLib_ChainNotFound</a></h3>
 <pre><code class="language-solidity">error mTokenProofDecoderLib_ChainNotFound();
 </code></pre>
@@ -4151,7 +4287,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <h3 id="mtokenproofdecoderlib_invalidinclusion"><a class="header" href="#mtokenproofdecoderlib_invalidinclusion">mTokenProofDecoderLib_InvalidInclusion</a></h3>
 <pre><code class="language-solidity">error mTokenProofDecoderLib_InvalidInclusion();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-12"><a class="header" href="#contents-12">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-13"><a class="header" href="#contents-13">Contents</a></h1>
 <ul>
 <li><a href="src%5CmToken//src%5CmToken%5Cextension">extension</a></li>
 <li><a href="src%5CmToken//src%5CmToken%5Chost">host</a></li>
@@ -4163,18 +4299,22 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <li><a href="src%5CmToken/mTokenConfiguration.sol%5Cabstract.mTokenConfiguration.html">mTokenConfiguration</a></li>
 <li><a href="src%5CmToken/mTokenStorage.sol%5Cabstract.mTokenStorage.html">mTokenStorage</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-13"><a class="header" href="#contents-13">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-14"><a class="header" href="#contents-14">Contents</a></h1>
 <ul>
 <li><a href="src%5CmToken%5Cextension/mTokenGateway.sol%5Ccontract.mTokenGateway.html">mTokenGateway</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtokengateway"><a class="header" href="#mtokengateway">mTokenGateway</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5Cextension%5CmTokenGateway.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5Cextension%5CmTokenGateway.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 OwnableUpgradeable, <a href="src%5CmToken%5Cextension%5CmTokenGateway.sol//src%5Cinterfaces%5CImTokenGateway.sol%5Cinterface.ImTokenGateway.html">ImTokenGateway</a>, <a href="src%5CmToken%5Cextension%5CmTokenGateway.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
-<h2 id="state-variables-4"><a class="header" href="#state-variables-4">State Variables</a></h2>
-<h3 id="rolesoperator-4"><a class="header" href="#rolesoperator-4">rolesOperator</a></h3>
-<p>Roles manager</p>
+<h2 id="state-variables-5"><a class="header" href="#state-variables-5">State Variables</a></h2>
+<h3 id="rolesoperator-5"><a class="header" href="#rolesoperator-5">rolesOperator</a></h3>
+<p>Roles</p>
 <pre><code class="language-solidity">IRoles public rolesOperator;
+</code></pre>
+<h3 id="blacklistoperator-3"><a class="header" href="#blacklistoperator-3">blacklistOperator</a></h3>
+<p>Blacklist</p>
+<pre><code class="language-solidity">IBlacklister public blacklistOperator;
 </code></pre>
 <h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
 <pre><code class="language-solidity">IZkVerifier public verifier;
@@ -4208,22 +4348,29 @@ OwnableUpgradeable, <a href="src%5CmToken%5Cextension%5CmTokenGateway.sol//src%5
 <p><em>gas fee for <code>supplyOnHost</code></em></p>
 <pre><code class="language-solidity">uint256 public gasFee;
 </code></pre>
-<h2 id="functions-46"><a class="header" href="#functions-46">Functions</a></h2>
-<h3 id="constructor-2"><a class="header" href="#constructor-2">constructor</a></h3>
+<h2 id="functions-49"><a class="header" href="#functions-49">Functions</a></h2>
+<h3 id="constructor-3"><a class="header" href="#constructor-3">constructor</a></h3>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor();
 </code></pre>
-<h3 id="initialize-1"><a class="header" href="#initialize-1">initialize</a></h3>
-<pre><code class="language-solidity">function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
-    external
-    initializer;
+<h3 id="initialize-2"><a class="header" href="#initialize-2">initialize</a></h3>
+<pre><code class="language-solidity">function initialize(
+    address payable _owner,
+    address _underlying,
+    address _roles,
+    address _blacklister,
+    address zkVerifier_
+) external initializer;
 </code></pre>
 <h3 id="notpaused"><a class="header" href="#notpaused">notPaused</a></h3>
 <pre><code class="language-solidity">modifier notPaused(OperationType _type);
 </code></pre>
 <h3 id="onlyalloweduser-1"><a class="header" href="#onlyalloweduser-1">onlyAllowedUser</a></h3>
 <pre><code class="language-solidity">modifier onlyAllowedUser(address user);
+</code></pre>
+<h3 id="ifnotblacklisted-1"><a class="header" href="#ifnotblacklisted-1">ifNotBlacklisted</a></h3>
+<pre><code class="language-solidity">modifier ifNotBlacklisted(address user);
 </code></pre>
 <h3 id="ispaused-3"><a class="header" href="#ispaused-3">isPaused</a></h3>
 <p>returns pause state for operation</p>
@@ -4275,9 +4422,6 @@ oz-upgrades-unsafe-allow: constructor</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount to rebalance</td></tr>
 </tbody></table>
 </div>
-<h3 id="setunderlying"><a class="header" href="#setunderlying">setUnderlying</a></h3>
-<pre><code class="language-solidity">function setUnderlying(address _addr) external onlyOwner;
-</code></pre>
 <h3 id="setgasfee"><a class="header" href="#setgasfee">setGasFee</a></h3>
 <p>Sets the gas fee</p>
 <pre><code class="language-solidity">function setGasFee(uint256 amount) external onlyOwner;
@@ -4322,7 +4466,9 @@ oz-upgrades-unsafe-allow: constructor</p>
     payable
     override
     notPaused(OperationType.AmountIn)
-    onlyAllowedUser(msg.sender);
+    onlyAllowedUser(msg.sender)
+    ifNotBlacklisted(msg.sender)
+    ifNotBlacklisted(receiver);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -4335,7 +4481,9 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Extract tokens</p>
 <pre><code class="language-solidity">function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
     external
-    notPaused(OperationType.AmountOutHere);
+    notPaused(OperationType.AmountOutHere)
+    ifNotBlacklisted(msg.sender)
+    ifNotBlacklisted(receiver);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -4366,15 +4514,15 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="_isallowedfor"><a class="header" href="#_isallowedfor">_isAllowedFor</a></h3>
 <pre><code class="language-solidity">function _isAllowedFor(address _sender, bytes32 role) private view returns (bool);
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-14"><a class="header" href="#contents-14">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-15"><a class="header" href="#contents-15">Contents</a></h1>
 <ul>
 <li><a href="src%5CmToken%5Chost/mErc20Host.sol%5Ccontract.mErc20Host.html">mErc20Host</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20host"><a class="header" href="#merc20host">mErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5Chost%5CmErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5Chost%5CmErc20Host.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5Chost%5CmErc20Host.sol//src%5CmToken%5CmErc20Upgradable.sol%5Cabstract.mErc20Upgradable.html">mErc20Upgradable</a>, <a href="src%5CmToken%5Chost%5CmErc20Host.sol//src%5Cinterfaces%5CImErc20Host.sol%5Cinterface.ImErc20Host.html">ImErc20Host</a>, <a href="src%5CmToken%5Chost%5CmErc20Host.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
-<h2 id="state-variables-5"><a class="header" href="#state-variables-5">State Variables</a></h2>
+<h2 id="state-variables-6"><a class="header" href="#state-variables-6">State Variables</a></h2>
 <h3 id="migrator"><a class="header" href="#migrator">migrator</a></h3>
 <pre><code class="language-solidity">address public migrator;
 </code></pre>
@@ -4393,11 +4541,11 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="gashelper"><a class="header" href="#gashelper">gasHelper</a></h3>
 <pre><code class="language-solidity">IGasFeesHelper public gasHelper;
 </code></pre>
-<h2 id="functions-47"><a class="header" href="#functions-47">Functions</a></h2>
+<h2 id="functions-50"><a class="header" href="#functions-50">Functions</a></h2>
 <h3 id="onlymigrator"><a class="header" href="#onlymigrator">onlyMigrator</a></h3>
 <pre><code class="language-solidity">modifier onlyMigrator();
 </code></pre>
-<h3 id="initialize-2"><a class="header" href="#initialize-2">initialize</a></h3>
+<h3 id="initialize-3"><a class="header" href="#initialize-3">initialize</a></h3>
 <p>Initializes the new money market</p>
 <pre><code class="language-solidity">function initialize(
     address underlying_,
@@ -4638,11 +4786,11 @@ oz-upgrades-unsafe-allow: constructor</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batchsubmitter"><a class="header" href="#batchsubmitter">BatchSubmitter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CBatchSubmitter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CBatchSubmitter.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
-<h2 id="state-variables-6"><a class="header" href="#state-variables-6">State Variables</a></h2>
-<h3 id="rolesoperator-5"><a class="header" href="#rolesoperator-5">rolesOperator</a></h3>
+<h2 id="state-variables-7"><a class="header" href="#state-variables-7">State Variables</a></h2>
+<h3 id="rolesoperator-6"><a class="header" href="#rolesoperator-6">rolesOperator</a></h3>
 <p>The roles contract for access control</p>
 <pre><code class="language-solidity">IRoles public immutable rolesOperator;
 </code></pre>
@@ -4658,8 +4806,8 @@ Ownable</p>
 <h3 id="out_here_selector"><a class="header" href="#out_here_selector">OUT_HERE_SELECTOR</a></h3>
 <pre><code class="language-solidity">bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
 </code></pre>
-<h2 id="functions-48"><a class="header" href="#functions-48">Functions</a></h2>
-<h3 id="constructor-3"><a class="header" href="#constructor-3">constructor</a></h3>
+<h2 id="functions-51"><a class="header" href="#functions-51">Functions</a></h2>
+<h3 id="constructor-4"><a class="header" href="#constructor-4">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner);
 </code></pre>
 <h3 id="updatezkverifier-2"><a class="header" href="#updatezkverifier-2">updateZkVerifier</a></h3>
@@ -4685,7 +4833,7 @@ Ownable</p>
 <tr><td><code>seal</code></td><td><code>bytes</code></td><td>The seal data for verification</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-13"><a class="header" href="#events-13">Events</a></h2>
+<h2 id="events-14"><a class="header" href="#events-14">Events</a></h2>
 <h3 id="batchprocessfailed"><a class="header" href="#batchprocessfailed">BatchProcessFailed</a></h3>
 <pre><code class="language-solidity">event BatchProcessFailed(
     bytes32 initHash,
@@ -4705,7 +4853,7 @@ Ownable</p>
 <h3 id="zkverifierupdated-1"><a class="header" href="#zkverifierupdated-1">ZkVerifierUpdated</a></h3>
 <pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
-<h2 id="errors-12"><a class="header" href="#errors-12">Errors</a></h2>
+<h2 id="errors-13"><a class="header" href="#errors-13">Errors</a></h2>
 <h3 id="batchsubmitter_callernotallowed"><a class="header" href="#batchsubmitter_callernotallowed">BatchSubmitter_CallerNotAllowed</a></h3>
 <pre><code class="language-solidity">error BatchSubmitter_CallerNotAllowed();
 </code></pre>
@@ -4741,16 +4889,16 @@ endIndex End index for processing journals (exclusive)</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20"><a class="header" href="#merc20">mErc20</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmErc20.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmErc20.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmErc20.sol//src%5CmToken%5CmToken.sol%5Cabstract.mToken.html">mToken</a>, <a href="src%5CmToken%5CmErc20.sol//src%5Cinterfaces%5CImErc20.sol%5Cinterface.ImErc20.html">ImErc20</a></p>
 <p>mTokens which wrap an EIP-20 underlying</p>
-<h2 id="state-variables-7"><a class="header" href="#state-variables-7">State Variables</a></h2>
+<h2 id="state-variables-8"><a class="header" href="#state-variables-8">State Variables</a></h2>
 <h3 id="underlying-3"><a class="header" href="#underlying-3">underlying</a></h3>
 <p>Underlying asset for this mToken</p>
 <pre><code class="language-solidity">address public underlying;
 </code></pre>
-<h2 id="functions-49"><a class="header" href="#functions-49">Functions</a></h2>
+<h2 id="functions-52"><a class="header" href="#functions-52">Functions</a></h2>
 <h3 id="_initializemerc20"><a class="header" href="#_initializemerc20">_initializeMErc20</a></h3>
 <p>Initialize the new money market</p>
 <pre><code class="language-solidity">function _initializeMErc20(
@@ -4886,16 +5034,16 @@ If caller has not called checked protocol's balance, may revert due to insuffici
 If caller has checked protocol's balance, and verified it is &gt;= amount, this should not revert in normal conditions.</em></p>
 <pre><code class="language-solidity">function _doTransferOut(address payable to, uint256 amount) internal virtual override;
 </code></pre>
-<h2 id="errors-13"><a class="header" href="#errors-13">Errors</a></h2>
+<h2 id="errors-14"><a class="header" href="#errors-14">Errors</a></h2>
 <h3 id="merc20_tokennotvalid"><a class="header" href="#merc20_tokennotvalid">mErc20_TokenNotValid</a></h3>
 <pre><code class="language-solidity">error mErc20_TokenNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20immutable"><a class="header" href="#merc20immutable">mErc20Immutable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmErc20Immutable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmErc20Immutable.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmErc20Immutable.sol//src%5CmToken%5CmErc20.sol%5Cabstract.mErc20.html">mErc20</a></p>
-<h2 id="functions-50"><a class="header" href="#functions-50">Functions</a></h2>
-<h3 id="constructor-4"><a class="header" href="#constructor-4">constructor</a></h3>
+<h2 id="functions-53"><a class="header" href="#functions-53">Functions</a></h2>
+<h3 id="constructor-5"><a class="header" href="#constructor-5">constructor</a></h3>
 <p>Constructs the new money market</p>
 <pre><code class="language-solidity">constructor(
     address underlying_,
@@ -4920,11 +5068,11 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <tr><td><code>admin_</code></td><td><code>address payable</code></td><td>Address of the administrator of this token</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="merc20upgradable"><a class="header" href="#merc20upgradable">mErc20Upgradable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmErc20Upgradable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmErc20Upgradable.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmErc20Upgradable.sol//src%5CmToken%5CmErc20.sol%5Cabstract.mErc20.html">mErc20</a>, Initializable</p>
-<h2 id="functions-51"><a class="header" href="#functions-51">Functions</a></h2>
-<h3 id="constructor-5"><a class="header" href="#constructor-5">constructor</a></h3>
+<h2 id="functions-54"><a class="header" href="#functions-54">Functions</a></h2>
+<h3 id="constructor-6"><a class="header" href="#constructor-6">constructor</a></h3>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor();
@@ -4954,11 +5102,11 @@ oz-upgrades-unsafe-allow: constructor</p>
 <tr><td><code>admin_</code></td><td><code>address payable</code></td><td></td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="mtoken"><a class="header" href="#mtoken">mToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmToken.sol//src%5CmToken%5CmTokenConfiguration.sol%5Cabstract.mTokenConfiguration.html">mTokenConfiguration</a>, ReentrancyGuard</p>
-<h2 id="functions-52"><a class="header" href="#functions-52">Functions</a></h2>
-<h3 id="constructor-6"><a class="header" href="#constructor-6">constructor</a></h3>
+<h2 id="functions-55"><a class="header" href="#functions-55">Functions</a></h2>
+<h3 id="constructor-7"><a class="header" href="#constructor-7">constructor</a></h3>
 <pre><code class="language-solidity">constructor();
 </code></pre>
 <h3 id="_initializemtoken"><a class="header" href="#_initializemtoken">_initializeMToken</a></h3>
@@ -5405,10 +5553,10 @@ The collateral seized is transferred to the liquidator.</p>
 <tr><td><code>tokens</code></td><td><code>uint256</code></td><td>The number of tokens to transfer</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenconfiguration"><a class="header" href="#mtokenconfiguration">mTokenConfiguration</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmTokenConfiguration.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmTokenConfiguration.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmTokenConfiguration.sol//src%5CmToken%5CmTokenStorage.sol%5Cabstract.mTokenStorage.html">mTokenStorage</a></p>
-<h2 id="functions-53"><a class="header" href="#functions-53">Functions</a></h2>
+<h2 id="functions-56"><a class="header" href="#functions-56">Functions</a></h2>
 <h3 id="onlyadmin"><a class="header" href="#onlyadmin">onlyAdmin</a></h3>
 <pre><code class="language-solidity">modifier onlyAdmin();
 </code></pre>
@@ -5469,10 +5617,10 @@ The collateral seized is transferred to the liquidator.</p>
 <pre><code class="language-solidity">function _setOperator(address _operator) internal;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenstorage"><a class="header" href="#mtokenstorage">mTokenStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CmToken%5CmTokenStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CmToken%5CmTokenStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5CmToken%5CmTokenStorage.sol//src%5Cinterfaces%5CImToken.sol%5Cinterface.ImToken.html">ImToken</a>, <a href="src%5CmToken%5CmTokenStorage.sol//src%5Cutils%5CExponentialNoError.sol%5Cabstract.ExponentialNoError.html">ExponentialNoError</a></p>
-<h2 id="state-variables-8"><a class="header" href="#state-variables-8">State Variables</a></h2>
+<h2 id="state-variables-9"><a class="header" href="#state-variables-9">State Variables</a></h2>
 <h3 id="admin-1"><a class="header" href="#admin-1">admin</a></h3>
 <p>Administrator for this contract</p>
 <pre><code class="language-solidity">address payable public admin;
@@ -5485,7 +5633,7 @@ The collateral seized is transferred to the liquidator.</p>
 <p>Contract which oversees inter-mToken operations</p>
 <pre><code class="language-solidity">address public operator;
 </code></pre>
-<h3 id="rolesoperator-6"><a class="header" href="#rolesoperator-6">rolesOperator</a></h3>
+<h3 id="rolesoperator-7"><a class="header" href="#rolesoperator-7">rolesOperator</a></h3>
 <p>Roles manager</p>
 <pre><code class="language-solidity">IRoles public rolesOperator;
 </code></pre>
@@ -5558,7 +5706,7 @@ The collateral seized is transferred to the liquidator.</p>
 <p>Share of seized collateral that is added to reserves</p>
 <pre><code class="language-solidity">uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16;
 </code></pre>
-<h2 id="functions-54"><a class="header" href="#functions-54">Functions</a></h2>
+<h2 id="functions-57"><a class="header" href="#functions-57">Functions</a></h2>
 <h3 id="accrueinterest-1"><a class="header" href="#accrueinterest-1">accrueInterest</a></h3>
 <p>Accrues interest on the contract's outstanding loans</p>
 <pre><code class="language-solidity">function accrueInterest() external virtual;
@@ -5604,7 +5752,7 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <h3 id="_accrueinterest"><a class="header" href="#_accrueinterest">_accrueInterest</a></h3>
 <pre><code class="language-solidity">function _accrueInterest() internal;
 </code></pre>
-<h2 id="events-14"><a class="header" href="#events-14">Events</a></h2>
+<h2 id="events-15"><a class="header" href="#events-15">Events</a></h2>
 <h3 id="newrolesoperator-1"><a class="header" href="#newrolesoperator-1">NewRolesOperator</a></h3>
 <p>Event emitted when rolesOperator is changed</p>
 <pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
@@ -5681,7 +5829,7 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <p>Event emitted when same chain flow state is enabled or disabled</p>
 <pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
-<h2 id="errors-14"><a class="header" href="#errors-14">Errors</a></h2>
+<h2 id="errors-15"><a class="header" href="#errors-15">Errors</a></h2>
 <h3 id="mt_onlyadmin"><a class="header" href="#mt_onlyadmin">mt_OnlyAdmin</a></h3>
 <pre><code class="language-solidity">error mt_OnlyAdmin();
 </code></pre>
@@ -5744,15 +5892,15 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
     uint256 interestIndex;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-15"><a class="header" href="#contents-15">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-16"><a class="header" href="#contents-16">Contents</a></h1>
 <ul>
 <li><a href="src%5Cmigration/IMigrator.sol%5Cinterface.IMendiMarket.html">IMendiMarket</a></li>
 <li><a href="src%5Cmigration/IMigrator.sol%5Cinterface.IMendiComptroller.html">IMendiComptroller</a></li>
 <li><a href="src%5Cmigration/Migrator.sol%5Ccontract.Migrator.html">Migrator</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imendimarket"><a class="header" href="#imendimarket">IMendiMarket</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cmigration%5CIMigrator.sol">Git Source</a></p>
-<h2 id="functions-55"><a class="header" href="#functions-55">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cmigration%5CIMigrator.sol">Git Source</a></p>
+<h2 id="functions-58"><a class="header" href="#functions-58">Functions</a></h2>
 <h3 id="repayborrow-1"><a class="header" href="#repayborrow-1">repayBorrow</a></h3>
 <pre><code class="language-solidity">function repayBorrow(uint256 repayAmount) external returns (uint256);
 </code></pre>
@@ -5778,14 +5926,14 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <pre><code class="language-solidity">function borrowBalanceStored(address sender) external view returns (uint256);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imendicomptroller"><a class="header" href="#imendicomptroller">IMendiComptroller</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cmigration%5CIMigrator.sol">Git Source</a></p>
-<h2 id="functions-56"><a class="header" href="#functions-56">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cmigration%5CIMigrator.sol">Git Source</a></p>
+<h2 id="functions-59"><a class="header" href="#functions-59">Functions</a></h2>
 <h3 id="getassetsin-2"><a class="header" href="#getassetsin-2">getAssetsIn</a></h3>
 <pre><code class="language-solidity">function getAssetsIn(address account) external view returns (IMendiMarket[] memory);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="migrator-1"><a class="header" href="#migrator-1">Migrator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cmigration%5CMigrator.sol">Git Source</a></p>
-<h2 id="state-variables-9"><a class="header" href="#state-variables-9">State Variables</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cmigration%5CMigrator.sol">Git Source</a></p>
+<h2 id="state-variables-10"><a class="header" href="#state-variables-10">State Variables</a></h2>
 <h3 id="allowedmarkets"><a class="header" href="#allowedmarkets">allowedMarkets</a></h3>
 <pre><code class="language-solidity">mapping(address =&gt; bool) public allowedMarkets;
 </code></pre>
@@ -5795,8 +5943,8 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <h3 id="malda_operator"><a class="header" href="#malda_operator">MALDA_OPERATOR</a></h3>
 <pre><code class="language-solidity">address public immutable MALDA_OPERATOR;
 </code></pre>
-<h2 id="functions-57"><a class="header" href="#functions-57">Functions</a></h2>
-<h3 id="constructor-7"><a class="header" href="#constructor-7">constructor</a></h3>
+<h2 id="functions-60"><a class="header" href="#functions-60">Functions</a></h2>
+<h3 id="constructor-8"><a class="header" href="#constructor-8">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _operator);
 </code></pre>
 <h3 id="getallcollateralmarkets"><a class="header" href="#getallcollateralmarkets">getAllCollateralMarkets</a></h3>
@@ -5828,27 +5976,27 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
     uint256 borrowAmount;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-16"><a class="header" href="#contents-16">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-17"><a class="header" href="#contents-17">Contents</a></h1>
 <ul>
 <li><a href="src%5Coracles//src%5Coracles%5Cgas">gas</a></li>
 <li><a href="src%5Coracles/ChainlinkOracle.sol%5Ccontract.ChainlinkOracle.html">ChainlinkOracle</a></li>
 <li><a href="src%5Coracles/MixedPriceOracleV3.sol%5Ccontract.MixedPriceOracleV3.html">MixedPriceOracleV3</a></li>
 <li><a href="src%5Coracles/MixedPriceOracleV4.sol%5Ccontract.MixedPriceOracleV4.html">MixedPriceOracleV4</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-17"><a class="header" href="#contents-17">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-18"><a class="header" href="#contents-18">Contents</a></h1>
 <ul>
 <li><a href="src%5Coracles%5Cgas/DefaultGasHelper.sol%5Ccontract.DefaultGasHelper.html">DefaultGasHelper</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="defaultgashelper"><a class="header" href="#defaultgashelper">DefaultGasHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Coracles%5Cgas%5CDefaultGasHelper.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Coracles%5Cgas%5CDefaultGasHelper.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
-<h2 id="state-variables-10"><a class="header" href="#state-variables-10">State Variables</a></h2>
+<h2 id="state-variables-11"><a class="header" href="#state-variables-11">State Variables</a></h2>
 <h3 id="gasfees-1"><a class="header" href="#gasfees-1">gasFees</a></h3>
 <pre><code class="language-solidity">mapping(uint32 =&gt; uint256) public gasFees;
 </code></pre>
-<h2 id="functions-58"><a class="header" href="#functions-58">Functions</a></h2>
-<h3 id="constructor-8"><a class="header" href="#constructor-8">constructor</a></h3>
+<h2 id="functions-61"><a class="header" href="#functions-61">Functions</a></h2>
+<h3 id="constructor-9"><a class="header" href="#constructor-9">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _owner) Ownable(_owner);
 </code></pre>
 <h3 id="setgasfee-1"><a class="header" href="#setgasfee-1">setGasFee</a></h3>
@@ -5861,15 +6009,15 @@ Ownable</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>the gas fee amount</td></tr>
 </tbody></table>
 </div>
-<h2 id="events-15"><a class="header" href="#events-15">Events</a></h2>
+<h2 id="events-16"><a class="header" href="#events-16">Events</a></h2>
 <h3 id="gasfeeupdated"><a class="header" href="#gasfeeupdated">GasFeeUpdated</a></h3>
 <pre><code class="language-solidity">event GasFeeUpdated(uint32 indexed dstChainid, uint256 amount);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="chainlinkoracle"><a class="header" href="#chainlinkoracle">ChainlinkOracle</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Coracles%5CChainlinkOracle.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Coracles%5CChainlinkOracle.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Coracles%5CChainlinkOracle.sol//src%5Cinterfaces%5CIOracleOperator.sol%5Cinterface.IOracleOperator.html">IOracleOperator</a></p>
-<h2 id="state-variables-11"><a class="header" href="#state-variables-11">State Variables</a></h2>
+<h2 id="state-variables-12"><a class="header" href="#state-variables-12">State Variables</a></h2>
 <h3 id="pricefeeds"><a class="header" href="#pricefeeds">priceFeeds</a></h3>
 <pre><code class="language-solidity">mapping(string =&gt; IAggregatorV3) public priceFeeds;
 </code></pre>
@@ -5879,8 +6027,8 @@ Ownable</p>
 <h3 id="decimals-4"><a class="header" href="#decimals-4">DECIMALS</a></h3>
 <pre><code class="language-solidity">uint8 public constant DECIMALS = 18;
 </code></pre>
-<h2 id="functions-59"><a class="header" href="#functions-59">Functions</a></h2>
-<h3 id="constructor-9"><a class="header" href="#constructor-9">constructor</a></h3>
+<h2 id="functions-62"><a class="header" href="#functions-62">Functions</a></h2>
+<h3 id="constructor-10"><a class="header" href="#constructor-10">constructor</a></h3>
 <pre><code class="language-solidity">constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_);
 </code></pre>
 <h3 id="getprice-1"><a class="header" href="#getprice-1">getPrice</a></h3>
@@ -5914,7 +6062,7 @@ Ownable</p>
 <h3 id="_getlatestprice"><a class="header" href="#_getlatestprice">_getLatestPrice</a></h3>
 <pre><code class="language-solidity">function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256);
 </code></pre>
-<h2 id="errors-15"><a class="header" href="#errors-15">Errors</a></h2>
+<h2 id="errors-16"><a class="header" href="#errors-16">Errors</a></h2>
 <h3 id="chainlinkoracle_nopricefeed"><a class="header" href="#chainlinkoracle_nopricefeed">ChainlinkOracle_NoPriceFeed</a></h3>
 <pre><code class="language-solidity">error ChainlinkOracle_NoPriceFeed();
 </code></pre>
@@ -5922,10 +6070,10 @@ Ownable</p>
 <pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mixedpriceoraclev3"><a class="header" href="#mixedpriceoraclev3">MixedPriceOracleV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Coracles%5CMixedPriceOracleV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Coracles%5CMixedPriceOracleV3.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Coracles%5CMixedPriceOracleV3.sol//src%5Cinterfaces%5CIOracleOperator.sol%5Cinterface.IOracleOperator.html">IOracleOperator</a></p>
-<h2 id="state-variables-12"><a class="header" href="#state-variables-12">State Variables</a></h2>
+<h2 id="state-variables-13"><a class="header" href="#state-variables-13">State Variables</a></h2>
 <h3 id="staleness_period"><a class="header" href="#staleness_period">STALENESS_PERIOD</a></h3>
 <pre><code class="language-solidity">uint256 public immutable STALENESS_PERIOD;
 </code></pre>
@@ -5938,8 +6086,8 @@ Ownable</p>
 <h3 id="roles"><a class="header" href="#roles">roles</a></h3>
 <pre><code class="language-solidity">IRoles public immutable roles;
 </code></pre>
-<h2 id="functions-60"><a class="header" href="#functions-60">Functions</a></h2>
-<h3 id="constructor-10"><a class="header" href="#constructor-10">constructor</a></h3>
+<h2 id="functions-63"><a class="header" href="#functions-63">Functions</a></h2>
+<h3 id="constructor-11"><a class="header" href="#constructor-11">constructor</a></h3>
 <pre><code class="language-solidity">constructor(
     string[] memory symbols_,
     IDefaultAdapter.PriceConfig[] memory configs_,
@@ -5971,14 +6119,14 @@ Ownable</p>
 <h3 id="_getstaleness"><a class="header" href="#_getstaleness">_getStaleness</a></h3>
 <pre><code class="language-solidity">function _getStaleness(string memory symbol) internal view returns (uint256);
 </code></pre>
-<h2 id="events-16"><a class="header" href="#events-16">Events</a></h2>
+<h2 id="events-17"><a class="header" href="#events-17">Events</a></h2>
 <h3 id="configset"><a class="header" href="#configset">ConfigSet</a></h3>
 <pre><code class="language-solidity">event ConfigSet(string symbol, IDefaultAdapter.PriceConfig config);
 </code></pre>
 <h3 id="stalenessupdated"><a class="header" href="#stalenessupdated">StalenessUpdated</a></h3>
 <pre><code class="language-solidity">event StalenessUpdated(string symbol, uint256 val);
 </code></pre>
-<h2 id="errors-16"><a class="header" href="#errors-16">Errors</a></h2>
+<h2 id="errors-17"><a class="header" href="#errors-17">Errors</a></h2>
 <h3 id="mixedpriceoracle_unauthorized"><a class="header" href="#mixedpriceoracle_unauthorized">MixedPriceOracle_Unauthorized</a></h3>
 <pre><code class="language-solidity">error MixedPriceOracle_Unauthorized();
 </code></pre>
@@ -5995,10 +6143,10 @@ Ownable</p>
 <pre><code class="language-solidity">error MixedPriceOracle_InvalidConfig();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mixedpriceoraclev4"><a class="header" href="#mixedpriceoraclev4">MixedPriceOracleV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Coracles%5CMixedPriceOracleV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Coracles%5CMixedPriceOracleV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Coracles%5CMixedPriceOracleV4.sol//src%5Cinterfaces%5CIOracleOperator.sol%5Cinterface.IOracleOperator.html">IOracleOperator</a></p>
-<h2 id="state-variables-13"><a class="header" href="#state-variables-13">State Variables</a></h2>
+<h2 id="state-variables-14"><a class="header" href="#state-variables-14">State Variables</a></h2>
 <h3 id="staleness_period-1"><a class="header" href="#staleness_period-1">STALENESS_PERIOD</a></h3>
 <pre><code class="language-solidity">uint256 public immutable STALENESS_PERIOD;
 </code></pre>
@@ -6020,8 +6168,8 @@ Ownable</p>
 <h3 id="roles-1"><a class="header" href="#roles-1">roles</a></h3>
 <pre><code class="language-solidity">IRoles public immutable roles;
 </code></pre>
-<h2 id="functions-61"><a class="header" href="#functions-61">Functions</a></h2>
-<h3 id="constructor-11"><a class="header" href="#constructor-11">constructor</a></h3>
+<h2 id="functions-64"><a class="header" href="#functions-64">Functions</a></h2>
+<h3 id="constructor-12"><a class="header" href="#constructor-12">constructor</a></h3>
 <pre><code class="language-solidity">constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_);
 </code></pre>
 <h3 id="setstaleness-1"><a class="header" href="#setstaleness-1">setStaleness</a></h3>
@@ -6054,7 +6202,7 @@ Ownable</p>
 <h3 id="_getstaleness-1"><a class="header" href="#_getstaleness-1">_getStaleness</a></h3>
 <pre><code class="language-solidity">function _getStaleness(string memory symbol) internal view returns (uint256);
 </code></pre>
-<h2 id="events-17"><a class="header" href="#events-17">Events</a></h2>
+<h2 id="events-18"><a class="header" href="#events-18">Events</a></h2>
 <h3 id="configset-1"><a class="header" href="#configset-1">ConfigSet</a></h3>
 <pre><code class="language-solidity">event ConfigSet(string symbol, PriceConfig config);
 </code></pre>
@@ -6067,7 +6215,7 @@ Ownable</p>
 <h3 id="pricesymboldeltaupdated"><a class="header" href="#pricesymboldeltaupdated">PriceSymbolDeltaUpdated</a></h3>
 <pre><code class="language-solidity">event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol);
 </code></pre>
-<h2 id="errors-17"><a class="header" href="#errors-17">Errors</a></h2>
+<h2 id="errors-18"><a class="header" href="#errors-18">Errors</a></h2>
 <h3 id="mixedpriceoracle_unauthorized-1"><a class="header" href="#mixedpriceoracle_unauthorized-1">MixedPriceOracle_Unauthorized</a></h3>
 <pre><code class="language-solidity">error MixedPriceOracle_Unauthorized();
 </code></pre>
@@ -6104,15 +6252,15 @@ Ownable</p>
     uint256 underlyingDecimals;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-18"><a class="header" href="#contents-18">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-19"><a class="header" href="#contents-19">Contents</a></h1>
 <ul>
 <li><a href="src%5Cpauser/Pauser.sol%5Ccontract.Pauser.html">Pauser</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pauser"><a class="header" href="#pauser">Pauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cpauser%5CPauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cpauser%5CPauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cinterface.IPauser.html">IPauser</a></p>
-<h2 id="state-variables-14"><a class="header" href="#state-variables-14">State Variables</a></h2>
+<h2 id="state-variables-15"><a class="header" href="#state-variables-15">State Variables</a></h2>
 <h3 id="roles-2"><a class="header" href="#roles-2">roles</a></h3>
 <pre><code class="language-solidity">IRoles public immutable roles;
 </code></pre>
@@ -6128,8 +6276,8 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="contracttypes"><a class="header" href="#contracttypes">contractTypes</a></h3>
 <pre><code class="language-solidity">mapping(address _contract =&gt; PausableType _type) public contractTypes;
 </code></pre>
-<h2 id="functions-62"><a class="header" href="#functions-62">Functions</a></h2>
-<h3 id="constructor-12"><a class="header" href="#constructor-12">constructor</a></h3>
+<h2 id="functions-65"><a class="header" href="#functions-65">Functions</a></h2>
+<h3 id="constructor-13"><a class="header" href="#constructor-13">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles, address _operator, address _owner) Ownable(_owner);
 </code></pre>
 <h3 id="addpausablemarket"><a class="header" href="#addpausablemarket">addPausableMarket</a></h3>
@@ -6186,23 +6334,22 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="_findindex"><a class="header" href="#_findindex">_findIndex</a></h3>
 <pre><code class="language-solidity">function _findIndex(address _address) private view returns (uint256);
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-19"><a class="header" href="#contents-19">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-20"><a class="header" href="#contents-20">Contents</a></h1>
 <ul>
 <li><a href="src%5Crebalancer//src%5Crebalancer%5Cbridges">bridges</a></li>
 <li><a href="src%5Crebalancer/Rebalancer.sol%5Ccontract.Rebalancer.html">Rebalancer</a></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-20"><a class="header" href="#contents-20">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-21"><a class="header" href="#contents-21">Contents</a></h1>
 <ul>
 <li><a href="src%5Crebalancer%5Cbridges/AcrossBridge.sol%5Ccontract.AccrossBridge.html">AccrossBridge</a></li>
 <li><a href="src%5Crebalancer%5Cbridges/BaseBridge.sol%5Cabstract.BaseBridge.html">BaseBridge</a></li>
 <li><a href="src%5Crebalancer%5Cbridges/EverclearBridge.sol%5Ccontract.EverclearBridge.html">EverclearBridge</a></li>
-<li><a href="src%5Crebalancer%5Cbridges/MockTokensBridge.sol%5Ccontract.MockTokensBridge.html">MockTokensBridge</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="accrossbridge"><a class="header" href="#accrossbridge">AccrossBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crebalancer%5Cbridges%5CAcrossBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Crebalancer%5Cbridges%5CAcrossBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Crebalancer%5Cbridges%5CAcrossBridge.sol//src%5Crebalancer%5Cbridges%5CBaseBridge.sol%5Cabstract.BaseBridge.html">BaseBridge</a>, <a href="src%5Crebalancer%5Cbridges%5CAcrossBridge.sol//src%5Cinterfaces%5CIBridge.sol%5Cinterface.IBridge.html">IBridge</a>, ReentrancyGuard</p>
-<h2 id="state-variables-15"><a class="header" href="#state-variables-15">State Variables</a></h2>
+<h2 id="state-variables-16"><a class="header" href="#state-variables-16">State Variables</a></h2>
 <h3 id="acrossspokepool"><a class="header" href="#acrossspokepool">acrossSpokePool</a></h3>
 <pre><code class="language-solidity">address public immutable acrossSpokePool;
 </code></pre>
@@ -6215,8 +6362,8 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="slippage_precision"><a class="header" href="#slippage_precision">SLIPPAGE_PRECISION</a></h3>
 <pre><code class="language-solidity">uint256 private constant SLIPPAGE_PRECISION = 1e5;
 </code></pre>
-<h2 id="functions-63"><a class="header" href="#functions-63">Functions</a></h2>
-<h3 id="constructor-13"><a class="header" href="#constructor-13">constructor</a></h3>
+<h2 id="functions-66"><a class="header" href="#functions-66">Functions</a></h2>
+<h3 id="constructor-14"><a class="header" href="#constructor-14">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles, address _spokePool) BaseBridge(_roles);
 </code></pre>
 <h3 id="onlyspokepool"><a class="header" href="#onlyspokepool">onlySpokePool</a></h3>
@@ -6283,7 +6430,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="_depositv3now"><a class="header" href="#_depositv3now">_depositV3Now</a></h3>
 <pre><code class="language-solidity">function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private;
 </code></pre>
-<h2 id="events-18"><a class="header" href="#events-18">Events</a></h2>
+<h2 id="events-19"><a class="header" href="#events-19">Events</a></h2>
 <h3 id="rebalanced"><a class="header" href="#rebalanced">Rebalanced</a></h3>
 <pre><code class="language-solidity">event Rebalanced(address indexed market, uint256 amount);
 </code></pre>
@@ -6292,7 +6439,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
     address indexed sender, uint32 indexed dstId, address indexed delegate, bool status
 );
 </code></pre>
-<h2 id="errors-18"><a class="header" href="#errors-18">Errors</a></h2>
+<h2 id="errors-19"><a class="header" href="#errors-19">Errors</a></h2>
 <h3 id="acrossbridge_tokenmismatch"><a class="header" href="#acrossbridge_tokenmismatch">AcrossBridge_TokenMismatch</a></h3>
 <pre><code class="language-solidity">error AcrossBridge_TokenMismatch();
 </code></pre>
@@ -6322,13 +6469,13 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="basebridge"><a class="header" href="#basebridge">BaseBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crebalancer%5Cbridges%5CBaseBridge.sol">Git Source</a></p>
-<h2 id="state-variables-16"><a class="header" href="#state-variables-16">State Variables</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Crebalancer%5Cbridges%5CBaseBridge.sol">Git Source</a></p>
+<h2 id="state-variables-17"><a class="header" href="#state-variables-17">State Variables</a></h2>
 <h3 id="roles-3"><a class="header" href="#roles-3">roles</a></h3>
 <pre><code class="language-solidity">IRoles public roles;
 </code></pre>
-<h2 id="functions-64"><a class="header" href="#functions-64">Functions</a></h2>
-<h3 id="constructor-14"><a class="header" href="#constructor-14">constructor</a></h3>
+<h2 id="functions-67"><a class="header" href="#functions-67">Functions</a></h2>
+<h3 id="constructor-15"><a class="header" href="#constructor-15">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles);
 </code></pre>
 <h3 id="onlybridgeconfigurator"><a class="header" href="#onlybridgeconfigurator">onlyBridgeConfigurator</a></h3>
@@ -6337,7 +6484,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="onlyrebalancer"><a class="header" href="#onlyrebalancer">onlyRebalancer</a></h3>
 <pre><code class="language-solidity">modifier onlyRebalancer();
 </code></pre>
-<h2 id="errors-19"><a class="header" href="#errors-19">Errors</a></h2>
+<h2 id="errors-20"><a class="header" href="#errors-20">Errors</a></h2>
 <h3 id="basebridge_notauthorized"><a class="header" href="#basebridge_notauthorized">BaseBridge_NotAuthorized</a></h3>
 <pre><code class="language-solidity">error BaseBridge_NotAuthorized();
 </code></pre>
@@ -6351,15 +6498,15 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <pre><code class="language-solidity">error BaseBridge_AddressNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="everclearbridge"><a class="header" href="#everclearbridge">EverclearBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crebalancer%5Cbridges%5CEverclearBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Crebalancer%5Cbridges%5CEverclearBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Crebalancer%5Cbridges%5CEverclearBridge.sol//src%5Crebalancer%5Cbridges%5CBaseBridge.sol%5Cabstract.BaseBridge.html">BaseBridge</a>, <a href="src%5Crebalancer%5Cbridges%5CEverclearBridge.sol//src%5Cinterfaces%5CIBridge.sol%5Cinterface.IBridge.html">IBridge</a></p>
-<h2 id="state-variables-17"><a class="header" href="#state-variables-17">State Variables</a></h2>
+<h2 id="state-variables-18"><a class="header" href="#state-variables-18">State Variables</a></h2>
 <h3 id="everclearfeeadapter"><a class="header" href="#everclearfeeadapter">everclearFeeAdapter</a></h3>
 <pre><code class="language-solidity">IFeeAdapter public everclearFeeAdapter;
 </code></pre>
-<h2 id="functions-65"><a class="header" href="#functions-65">Functions</a></h2>
-<h3 id="constructor-15"><a class="header" href="#constructor-15">constructor</a></h3>
+<h2 id="functions-68"><a class="header" href="#functions-68">Functions</a></h2>
+<h3 id="constructor-16"><a class="header" href="#constructor-16">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles, address _feeAdapter) BaseBridge(_roles);
 </code></pre>
 <h3 id="getfee-2"><a class="header" href="#getfee-2">getFee</a></h3>
@@ -6386,14 +6533,14 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="_decodeintent"><a class="header" href="#_decodeintent">_decodeIntent</a></h3>
 <pre><code class="language-solidity">function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory);
 </code></pre>
-<h2 id="events-19"><a class="header" href="#events-19">Events</a></h2>
+<h2 id="events-20"><a class="header" href="#events-20">Events</a></h2>
 <h3 id="msgsent-1"><a class="header" href="#msgsent-1">MsgSent</a></h3>
 <pre><code class="language-solidity">event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
 </code></pre>
 <h3 id="rebalancingreturnedtomarket"><a class="header" href="#rebalancingreturnedtomarket">RebalancingReturnedToMarket</a></h3>
 <pre><code class="language-solidity">event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
 </code></pre>
-<h2 id="errors-20"><a class="header" href="#errors-20">Errors</a></h2>
+<h2 id="errors-21"><a class="header" href="#errors-21">Errors</a></h2>
 <h3 id="everclear_tokenmismatch"><a class="header" href="#everclear_tokenmismatch">Everclear_TokenMismatch</a></h3>
 <pre><code class="language-solidity">error Everclear_TokenMismatch();
 </code></pre>
@@ -6423,52 +6570,8 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
     IFeeAdapter.FeeParams feeParams;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="mocktokensbridge"><a class="header" href="#mocktokensbridge">MockTokensBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crebalancer%5Cbridges%5CMockTokensBridge.sol">Git Source</a></p>
-<p><strong>Inherits:</strong>
-<a href="src%5Crebalancer%5Cbridges%5CMockTokensBridge.sol//src%5Crebalancer%5Cbridges%5CBaseBridge.sol%5Cabstract.BaseBridge.html">BaseBridge</a>, <a href="src%5Crebalancer%5Cbridges%5CMockTokensBridge.sol//src%5Cinterfaces%5CIBridge.sol%5Cinterface.IBridge.html">IBridge</a>, ReentrancyGuard</p>
-<h2 id="state-variables-18"><a class="header" href="#state-variables-18">State Variables</a></h2>
-<h3 id="tokens"><a class="header" href="#tokens">tokens</a></h3>
-<pre><code class="language-solidity">address[] tokens;
-</code></pre>
-<h2 id="functions-66"><a class="header" href="#functions-66">Functions</a></h2>
-<h3 id="constructor-16"><a class="header" href="#constructor-16">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _roles, address[] memory _tokens) BaseBridge(_roles);
-</code></pre>
-<h3 id="getfee-3"><a class="header" href="#getfee-3">getFee</a></h3>
-<p>computes fee for bridge operation</p>
-<pre><code class="language-solidity">function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint32</code></td><td></td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
-</tbody></table>
-</div>
-<h3 id="sendmsg-4"><a class="header" href="#sendmsg-4">sendMsg</a></h3>
-<pre><code class="language-solidity">function sendMsg(
-    uint256 _extractedAmount,
-    address _market,
-    uint32 _dstChainId,
-    address _token,
-    bytes memory _message,
-    bytes memory
-) external payable onlyRebalancer;
-</code></pre>
-<h3 id="triggerminttest"><a class="header" href="#triggerminttest">triggerMintTest</a></h3>
-<pre><code class="language-solidity">function triggerMintTest(address _market, address _token, uint32 _dstChainId, uint256 _amount)
-    external
-    onlyRebalancer;
-</code></pre>
-<h2 id="events-20"><a class="header" href="#events-20">Events</a></h2>
-<h3 id="mocktokensbridgemintandburn"><a class="header" href="#mocktokensbridgemintandburn">MockTokensBridgeMintAndBurn</a></h3>
-<pre><code class="language-solidity">event MockTokensBridgeMintAndBurn(
-    address indexed _market, address indexed _token, uint256 amount, uint32 crtChainId, uint32 dstChainId
-);
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rebalancer-1"><a class="header" href="#rebalancer-1">Rebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crebalancer%5CRebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Crebalancer%5CRebalancer.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Crebalancer%5CRebalancer.sol//src%5Cinterfaces%5CIRebalancer.sol%5Cinterface.IRebalancer.html">IRebalancer</a></p>
 <h2 id="state-variables-19"><a class="header" href="#state-variables-19">State Variables</a></h2>
@@ -6505,7 +6608,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="transfertimewindow"><a class="header" href="#transfertimewindow">transferTimeWindow</a></h3>
 <pre><code class="language-solidity">uint256 public transferTimeWindow;
 </code></pre>
-<h2 id="functions-67"><a class="header" href="#functions-67">Functions</a></h2>
+<h2 id="functions-69"><a class="header" href="#functions-69">Functions</a></h2>
 <h3 id="constructor-17"><a class="header" href="#constructor-17">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _roles, address _saveAddress);
 </code></pre>
@@ -6535,7 +6638,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <p>returns if a destination is whitelisted</p>
 <pre><code class="language-solidity">function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
 </code></pre>
-<h3 id="sendmsg-5"><a class="header" href="#sendmsg-5">sendMsg</a></h3>
+<h3 id="sendmsg-4"><a class="header" href="#sendmsg-4">sendMsg</a></h3>
 <p>sends a bridge message</p>
 <pre><code class="language-solidity">function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable;
 </code></pre>
@@ -6554,12 +6657,12 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
     uint256 timestamp;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-21"><a class="header" href="#contents-21">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-22"><a class="header" href="#contents-22">Contents</a></h1>
 <ul>
 <li><a href="src%5Creferral/ReferralSigning.sol%5Ccontract.ReferralSigning.html">ReferralSigning</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="referralsigning"><a class="header" href="#referralsigning">ReferralSigning</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Creferral%5CReferralSigning.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Creferral%5CReferralSigning.sol">Git Source</a></p>
 <h2 id="state-variables-20"><a class="header" href="#state-variables-20">State Variables</a></h2>
 <h3 id="referredbyregistry"><a class="header" href="#referredbyregistry">referredByRegistry</a></h3>
 <pre><code class="language-solidity">mapping(address referredBy =&gt; mapping(address user =&gt; bool wasReferred)) public referredByRegistry;
@@ -6579,7 +6682,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="nonces"><a class="header" href="#nonces">nonces</a></h3>
 <pre><code class="language-solidity">mapping(address user =&gt; uint256 nonce) public nonces;
 </code></pre>
-<h2 id="functions-68"><a class="header" href="#functions-68">Functions</a></h2>
+<h2 id="functions-70"><a class="header" href="#functions-70">Functions</a></h2>
 <h3 id="onlynewuser"><a class="header" href="#onlynewuser">onlyNewUser</a></h3>
 <pre><code class="language-solidity">modifier onlyNewUser();
 </code></pre>
@@ -6593,7 +6696,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="referralrejected"><a class="header" href="#referralrejected">ReferralRejected</a></h3>
 <pre><code class="language-solidity">event ReferralRejected(address indexed referred, address indexed referrer, string reason);
 </code></pre>
-<h2 id="errors-21"><a class="header" href="#errors-21">Errors</a></h2>
+<h2 id="errors-22"><a class="header" href="#errors-22">Errors</a></h2>
 <h3 id="referralsigning_sameuser"><a class="header" href="#referralsigning_sameuser">ReferralSigning_SameUser</a></h3>
 <pre><code class="language-solidity">error ReferralSigning_SameUser();
 </code></pre>
@@ -6606,12 +6709,12 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <h3 id="referralsigning_contractreferrernotallowed"><a class="header" href="#referralsigning_contractreferrernotallowed">ReferralSigning_ContractReferrerNotAllowed</a></h3>
 <pre><code class="language-solidity">error ReferralSigning_ContractReferrerNotAllowed();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-22"><a class="header" href="#contents-22">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-23"><a class="header" href="#contents-23">Contents</a></h1>
 <ul>
 <li><a href="src%5Crewards/RewardDistributor.sol%5Ccontract.RewardDistributor.html">RewardDistributor</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rewarddistributor-2"><a class="header" href="#rewarddistributor-2">RewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Crewards%5CRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Crewards%5CRewardDistributor.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src%5Crewards%5CRewardDistributor.sol//src%5Cinterfaces%5CIRewardDistributor.sol%5Cinterface.IRewardDistributor.html">IRewardDistributor</a>, <a href="src%5Crewards%5CRewardDistributor.sol//src%5Cutils%5CExponentialNoError.sol%5Cabstract.ExponentialNoError.html">ExponentialNoError</a>, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable</p>
 <h2 id="state-variables-21"><a class="header" href="#state-variables-21">State Variables</a></h2>
@@ -6638,7 +6741,7 @@ Ownable, <a href="src%5Cpauser%5CPauser.sol//src%5Cinterfaces%5CIPauser.sol%5Cin
 <p>Flag to check if reward token added before</p>
 <pre><code class="language-solidity">mapping(address =&gt; bool) public isRewardToken;
 </code></pre>
-<h2 id="functions-69"><a class="header" href="#functions-69">Functions</a></h2>
+<h2 id="functions-71"><a class="header" href="#functions-71">Functions</a></h2>
 <h3 id="onlyoperator"><a class="header" href="#onlyoperator">onlyOperator</a></h3>
 <pre><code class="language-solidity">modifier onlyOperator();
 </code></pre>
@@ -6658,7 +6761,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Added reward tokens</p>
 <pre><code class="language-solidity">function getRewardTokens() public view override returns (address[] memory);
 </code></pre>
-<h3 id="initialize-3"><a class="header" href="#initialize-3">initialize</a></h3>
+<h3 id="initialize-4"><a class="header" href="#initialize-4">initialize</a></h3>
 <pre><code class="language-solidity">function initialize(address _owner) public initializer;
 </code></pre>
 <h3 id="setoperator-1"><a class="header" href="#setoperator-1">setOperator</a></h3>
@@ -6715,7 +6818,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="_grantreward"><a class="header" href="#_grantreward">_grantReward</a></h3>
 <pre><code class="language-solidity">function _grantReward(address token, address user, uint256 amount) internal returns (uint256);
 </code></pre>
-<h2 id="errors-22"><a class="header" href="#errors-22">Errors</a></h2>
+<h2 id="errors-23"><a class="header" href="#errors-23">Errors</a></h2>
 <h3 id="rewarddistributor_onlyoperator"><a class="header" href="#rewarddistributor_onlyoperator">RewardDistributor_OnlyOperator</a></h3>
 <pre><code class="language-solidity">error RewardDistributor_OnlyOperator();
 </code></pre>
@@ -6737,7 +6840,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="rewarddistributor_borrowspeedarraylengthmismatch"><a class="header" href="#rewarddistributor_borrowspeedarraylengthmismatch">RewardDistributor_BorrowSpeedArrayLengthMismatch</a></h3>
 <pre><code class="language-solidity">error RewardDistributor_BorrowSpeedArrayLengthMismatch();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-23"><a class="header" href="#contents-23">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-24"><a class="header" href="#contents-24">Contents</a></h1>
 <ul>
 <li><a href="src%5Cutils/Deployer.sol%5Ccontract.Deployer.html">Deployer</a></li>
 <li><a href="src%5Cutils/ExponentialNoError.sol%5Cabstract.ExponentialNoError.html">ExponentialNoError</a></li>
@@ -6746,7 +6849,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <li><a href="src%5Cutils/WrapAndSupply.sol%5Ccontract.WrapAndSupply.html">WrapAndSupply</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="deployer"><a class="header" href="#deployer">Deployer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cutils%5CDeployer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cutils%5CDeployer.sol">Git Source</a></p>
 <h2 id="state-variables-22"><a class="header" href="#state-variables-22">State Variables</a></h2>
 <h3 id="admin-2"><a class="header" href="#admin-2">admin</a></h3>
 <pre><code class="language-solidity">address public admin;
@@ -6754,7 +6857,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="pendingadmin-2"><a class="header" href="#pendingadmin-2">pendingAdmin</a></h3>
 <pre><code class="language-solidity">address public pendingAdmin;
 </code></pre>
-<h2 id="functions-70"><a class="header" href="#functions-70">Functions</a></h2>
+<h2 id="functions-72"><a class="header" href="#functions-72">Functions</a></h2>
 <h3 id="onlyadmin-1"><a class="header" href="#onlyadmin-1">onlyAdmin</a></h3>
 <pre><code class="language-solidity">modifier onlyAdmin();
 </code></pre>
@@ -6792,12 +6895,12 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="adminaccepted"><a class="header" href="#adminaccepted">AdminAccepted</a></h3>
 <pre><code class="language-solidity">event AdminAccepted(address indexed _admin);
 </code></pre>
-<h2 id="errors-23"><a class="header" href="#errors-23">Errors</a></h2>
+<h2 id="errors-24"><a class="header" href="#errors-24">Errors</a></h2>
 <h3 id="notauthorized"><a class="header" href="#notauthorized">NotAuthorized</a></h3>
 <pre><code class="language-solidity">error NotAuthorized(address admin, address sender);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cutils%5CExponentialNoError.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cutils%5CExponentialNoError.sol">Git Source</a></p>
 <p><strong>Author:</strong>
 Compound</p>
 <p>Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
@@ -6816,7 +6919,7 @@ Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
 <h3 id="mantissaone"><a class="header" href="#mantissaone">mantissaOne</a></h3>
 <pre><code class="language-solidity">uint256 constant mantissaOne = expScale;
 </code></pre>
-<h2 id="functions-71"><a class="header" href="#functions-71">Functions</a></h2>
+<h2 id="functions-73"><a class="header" href="#functions-73">Functions</a></h2>
 <h3 id="truncate"><a class="header" href="#truncate">truncate</a></h3>
 <p><em>Truncates the given exp to a whole number value.
 For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
@@ -6927,8 +7030,8 @@ For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="liquidationhelper"><a class="header" href="#liquidationhelper">LiquidationHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cutils%5CLiquidationHelper.sol">Git Source</a></p>
-<h2 id="functions-72"><a class="header" href="#functions-72">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cutils%5CLiquidationHelper.sol">Git Source</a></p>
+<h2 id="functions-74"><a class="header" href="#functions-74">Functions</a></h2>
 <h3 id="getborrowerposition"><a class="header" href="#getborrowerposition">getBorrowerPosition</a></h3>
 <pre><code class="language-solidity">function getBorrowerPosition(address borrower, address market)
     external
@@ -6936,8 +7039,8 @@ For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
     returns (bool shouldLiquidate, uint256 repayAmount);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iwrappednative"><a class="header" href="#iwrappednative">IWrappedNative</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cutils%5CWrapAndSupply.sol">Git Source</a></p>
-<h2 id="functions-73"><a class="header" href="#functions-73">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cutils%5CWrapAndSupply.sol">Git Source</a></p>
+<h2 id="functions-75"><a class="header" href="#functions-75">Functions</a></h2>
 <h3 id="deposit"><a class="header" href="#deposit">deposit</a></h3>
 <pre><code class="language-solidity">function deposit() external payable;
 </code></pre>
@@ -6948,12 +7051,12 @@ For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
 <pre><code class="language-solidity">function withdraw(uint256) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="wrapandsupply"><a class="header" href="#wrapandsupply">WrapAndSupply</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cutils%5CWrapAndSupply.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cutils%5CWrapAndSupply.sol">Git Source</a></p>
 <h2 id="state-variables-24"><a class="header" href="#state-variables-24">State Variables</a></h2>
 <h3 id="wrappednative"><a class="header" href="#wrappednative">wrappedNative</a></h3>
 <pre><code class="language-solidity">IWrappedNative public immutable wrappedNative;
 </code></pre>
-<h2 id="functions-74"><a class="header" href="#functions-74">Functions</a></h2>
+<h2 id="functions-76"><a class="header" href="#functions-76">Functions</a></h2>
 <h3 id="constructor-20"><a class="header" href="#constructor-20">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _wrappedNative);
 </code></pre>
@@ -6986,26 +7089,26 @@ For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
 <h3 id="wrappedandsupplied"><a class="header" href="#wrappedandsupplied">WrappedAndSupplied</a></h3>
 <pre><code class="language-solidity">event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 </code></pre>
-<h2 id="errors-24"><a class="header" href="#errors-24">Errors</a></h2>
+<h2 id="errors-25"><a class="header" href="#errors-25">Errors</a></h2>
 <h3 id="wrapandsupply_addressnotvalid"><a class="header" href="#wrapandsupply_addressnotvalid">WrapAndSupply_AddressNotValid</a></h3>
 <pre><code class="language-solidity">error WrapAndSupply_AddressNotValid();
 </code></pre>
 <h3 id="wrapandsupply_amountnotvalid"><a class="header" href="#wrapandsupply_amountnotvalid">WrapAndSupply_AmountNotValid</a></h3>
 <pre><code class="language-solidity">error WrapAndSupply_AmountNotValid();
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-24"><a class="header" href="#contents-24">Contents</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-25"><a class="header" href="#contents-25">Contents</a></h1>
 <ul>
 <li><a href="src%5Cverifier/ZkVerifier.sol%5Cinterface.IZkVerifier.html">IZkVerifier</a></li>
 <li><a href="src%5Cverifier/ZkVerifier.sol%5Ccontract.ZkVerifier.html">ZkVerifier</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="izkverifier"><a class="header" href="#izkverifier">IZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cverifier%5CZkVerifier.sol">Git Source</a></p>
-<h2 id="functions-75"><a class="header" href="#functions-75">Functions</a></h2>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cverifier%5CZkVerifier.sol">Git Source</a></p>
+<h2 id="functions-77"><a class="header" href="#functions-77">Functions</a></h2>
 <h3 id="verifyinput"><a class="header" href="#verifyinput">verifyInput</a></h3>
 <pre><code class="language-solidity">function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="zkverifier"><a class="header" href="#zkverifier">ZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5Cverifier%5CZkVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5Cverifier%5CZkVerifier.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src%5Cverifier%5CZkVerifier.sol//src%5Cverifier%5CZkVerifier.sol%5Cinterface.IZkVerifier.html">IZkVerifier</a></p>
 <h2 id="state-variables-25"><a class="header" href="#state-variables-25">State Variables</a></h2>
@@ -7015,7 +7118,7 @@ Ownable, <a href="src%5Cverifier%5CZkVerifier.sol//src%5Cverifier%5CZkVerifier.s
 <h3 id="imageid"><a class="header" href="#imageid">imageId</a></h3>
 <pre><code class="language-solidity">bytes32 public imageId;
 </code></pre>
-<h2 id="functions-76"><a class="header" href="#functions-76">Functions</a></h2>
+<h2 id="functions-78"><a class="header" href="#functions-78">Functions</a></h2>
 <h3 id="constructor-21"><a class="header" href="#constructor-21">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner);
 </code></pre>
@@ -7062,7 +7165,7 @@ Ownable, <a href="src%5Cverifier%5CZkVerifier.sol//src%5Cverifier%5CZkVerifier.s
 <h3 id="verifierset"><a class="header" href="#verifierset">VerifierSet</a></h3>
 <pre><code class="language-solidity">event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
-<h2 id="errors-25"><a class="header" href="#errors-25">Errors</a></h2>
+<h2 id="errors-26"><a class="header" href="#errors-26">Errors</a></h2>
 <h3 id="zkverifier_imagenotvalid"><a class="header" href="#zkverifier_imagenotvalid">ZkVerifier_ImageNotValid</a></h3>
 <pre><code class="language-solidity">error ZkVerifier_ImageNotValid();
 </code></pre>
@@ -7073,12 +7176,12 @@ Ownable, <a href="src%5Cverifier%5CZkVerifier.sol//src%5Cverifier%5CZkVerifier.s
 <pre><code class="language-solidity">error ZkVerifier_VerifierNotSet();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="counter"><a class="header" href="#counter">Counter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CCounter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CCounter.sol">Git Source</a></p>
 <h2 id="state-variables-26"><a class="header" href="#state-variables-26">State Variables</a></h2>
 <h3 id="number"><a class="header" href="#number">number</a></h3>
 <pre><code class="language-solidity">uint256 public number;
 </code></pre>
-<h2 id="functions-77"><a class="header" href="#functions-77">Functions</a></h2>
+<h2 id="functions-79"><a class="header" href="#functions-79">Functions</a></h2>
 <h3 id="setnumber"><a class="header" href="#setnumber">setNumber</a></h3>
 <pre><code class="language-solidity">function setNumber(uint256 newNumber) public;
 </code></pre>
@@ -7086,7 +7189,7 @@ Ownable, <a href="src%5Cverifier%5CZkVerifier.sol//src%5Cverifier%5CZkVerifier.s
 <pre><code class="language-solidity">function increment() public;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="roles-5"><a class="header" href="#roles-5">Roles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src%5CRoles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src%5CRoles.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src%5CRoles.sol//src%5Cinterfaces%5CIRoles.sol%5Cinterface.IRoles.html">IRoles</a></p>
 <h2 id="state-variables-27"><a class="header" href="#state-variables-27">State Variables</a></h2>
@@ -7132,7 +7235,10 @@ Ownable, <a href="src%5CRoles.sol//src%5Cinterfaces%5CIRoles.sol%5Cinterface.IRo
 <h3 id="guardian_supply_cap-1"><a class="header" href="#guardian_supply_cap-1">GUARDIAN_SUPPLY_CAP</a></h3>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
 </code></pre>
-<h2 id="functions-78"><a class="header" href="#functions-78">Functions</a></h2>
+<h3 id="guardian_blacklist-1"><a class="header" href="#guardian_blacklist-1">GUARDIAN_BLACKLIST</a></h3>
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BLACKLIST = keccak256("GUARDIAN_BLACKLIST");
+</code></pre>
+<h2 id="functions-80"><a class="header" href="#functions-80">Functions</a></h2>
 <h3 id="constructor-22"><a class="header" href="#constructor-22">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _owner) Ownable(_owner);
 </code></pre>

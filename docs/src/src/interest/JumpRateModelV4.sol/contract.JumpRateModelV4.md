@@ -1,5 +1,5 @@
 # JumpRateModelV4
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/01abcfb9040cf303f2a5fc706b3c3af752e0b27a/src\interest\JumpRateModelV4.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interest\JumpRateModelV4.sol)
 
 **Inherits:**
 [IInterestRateModel](/src\interfaces\IInterestRateModel.sol\interface.IInterestRateModel.md), Ownable
@@ -241,5 +241,11 @@ function _updateJumpRateModel(
 
 ```solidity
 error JumpRateModelV4_MultiplierNotValid();
+```
+
+### JumpRateModelV4_InputNotValid
+
+```solidity
+error JumpRateModelV4_InputNotValid();
 ```
 
