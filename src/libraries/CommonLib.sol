@@ -34,6 +34,7 @@ library CommonLib {
     function checkLengthMatch(uint256 l1, uint256 l2) internal pure {
         if (l1 != l2) revert CommonLib_LengthMismatch();
     }
+
     function checkLengthMatch(uint256 l1, uint256 l2, uint256 l3) internal pure {
         if (l1 != l2 || l2 != l3) revert CommonLib_LengthMismatch();
     }
@@ -42,7 +43,9 @@ library CommonLib {
         uint256 length = values.length;
         for (uint256 i; i < length;) {
             sum += values[i];
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -56,9 +59,7 @@ library CommonLib {
         if (amount == 0) revert AmountNotValid();
         if (!allowedChains[dstChainId]) revert ChainNotValid();
 
-        uint256 requiredGas = address(gasHelper) != address(0)
-            ? gasHelper.gasFees(dstChainId)
-            : 0;
+        uint256 requiredGas = address(gasHelper) != address(0) ? gasHelper.gasFees(dstChainId) : 0;
 
         if (msgValue < requiredGas) revert NotEnoughGasFee();
     }

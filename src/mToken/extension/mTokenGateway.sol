@@ -84,6 +84,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         require(_roles != address(0), mTokenGateway_AddressNotValid());
         require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
         require(_blacklister != address(0), mTokenGateway_AddressNotValid());
+        require(_underlying != address(0), mTokenGateway_AddressNotValid());
+        require(_roles != address(0), mTokenGateway_AddressNotValid());
 
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
@@ -176,11 +178,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
-    // temporary. V1.0.1
-    function setUnderlying(address _addr) external onlyOwner {
-        underlying = _addr;
-    }
-    
     /**
      * @notice Sets the gas fee
      * @param amount the new gas fee
@@ -319,17 +316,16 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
-
         // Decode the dynamic array of journals.
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
 
         // Check the L1Inclusion flag for each journal.
-        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
-                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole())
+            || _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
-                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                (,,,,,, bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
                 if (!L1Inclusion) {
                     revert mTokenGateway_L1InclusionRequired();
                 }

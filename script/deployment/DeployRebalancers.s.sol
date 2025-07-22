@@ -57,7 +57,7 @@ contract DeployRebalancers is Script {
             address rebalancerEOA = vm.envAddress("DEPLOYER_ADMIN_ADDRESS");
             bool hasEOARole = roleContract.isAllowedFor(rebalancerEOA, roleContract.REBALANCER_EOA());
             if (!hasEOARole) {
-                vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+                vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
                 roleContract.allowFor(vm.envAddress("DEPLOYER_ADMIN_ADDRESS"), roleContract.REBALANCER_EOA(), true);
                 vm.stopBroadcast();
             }
@@ -66,19 +66,19 @@ contract DeployRebalancers is Script {
             address guardianBridge = vm.envAddress("DEPLOYER_ADMIN_ADDRESS");
             bool hasGuardianBridge = roleContract.isAllowedFor(guardianBridge, roleContract.GUARDIAN_BRIDGE());
             if (!hasGuardianBridge) {
-                vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+                vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
                 roleContract.allowFor(vm.envAddress("DEPLOYER_ADMIN_ADDRESS"), roleContract.GUARDIAN_BRIDGE(), true);
                 vm.stopBroadcast();
             }
 
             // set GUARDIAN_BRIDGE
             // -- add bridge to whitelist
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             Rebalancer(deployedRebalancer).setWhitelistedBridgeStatus(deployedBridge, true);
             vm.stopBroadcast();
 
             // -- add role for rebalancer
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             roleContract.allowFor(address(deployedRebalancer), roleContract.REBALANCER(), true);
             vm.stopBroadcast();
 
@@ -95,7 +95,7 @@ contract DeployRebalancers is Script {
 
     function _deployRebalancer(address roles, address deployer) private returns (address) {
         console.log("Deploying Rebalancer");
-        address result = deployRebalancer.run(roles, vm.envAddress("OWNER"), Deployer(payable(deployer)));
+        address result = deployRebalancer.run(roles, vm.envAddress("PUBLIC_KEY"), Deployer(payable(deployer)));
         console.log("Rebalancer deployed at:", result);
         return result;
     }

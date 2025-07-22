@@ -1,5 +1,5 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
 OwnableUpgradeable, [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
@@ -231,13 +231,6 @@ function extractForRebalancing(uint256 amount) external notPaused(OperationType.
 |----|----|-----------|
 |`amount`|`uint256`|The amount to rebalance|
 
-
-### setUnderlying
-
-
-```solidity
-function setUnderlying(address _addr) external onlyOwner;
-```
 
 ### setGasFee
 

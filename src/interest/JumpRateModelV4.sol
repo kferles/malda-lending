@@ -34,6 +34,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     // ----------- STORAGE ------------
 
     error JumpRateModelV4_MultiplierNotValid();
+    error JumpRateModelV4_InputNotValid();
 
     /**
      * @inheritdoc IInterestRateModel
@@ -181,7 +182,6 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         multiplierPerBlock = multiplierPerYear * 1e18 / (blocksPerYear * kink_);
         jumpMultiplierPerBlock = jumpMultiplierPerYear / blocksPerYear;
         kink = kink_;
-
 
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }

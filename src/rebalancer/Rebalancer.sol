@@ -53,6 +53,9 @@ contract Rebalancer is IRebalancer {
     uint256 public transferTimeWindow;
 
     constructor(address _roles, address _saveAddress) {
+        require(_roles != address(0), Rebalancer_AddressNotValid());
+        require(_saveAddress != address(0), Rebalancer_AddressNotValid());
+        
         roles = IRoles(_roles);
         transferTimeWindow = 86400;
         saveAddress = _saveAddress;
@@ -87,7 +90,7 @@ contract Rebalancer is IRebalancer {
 
         uint256 amount = address(this).balance;
         // no need to check return value
-        (bool success, ) = saveAddress.call{value: amount}("");
+        (bool success,) = saveAddress.call{value: amount}("");
         require(success, Rebalancer_RequestNotValid());
         emit EthSaved(amount);
     }
@@ -145,10 +148,7 @@ contract Rebalancer is IRebalancer {
 
         uint256 _maxTransferSize = maxTransferSizes[_msg.dstChainId][_msg.token];
         if (_maxTransferSize > 0) {
-            require(
-                transferInfo.size + _amount < _maxTransferSize,
-                Rebalancer_TransferSizeExcedeed()
-            );
+            require(transferInfo.size + _amount < _maxTransferSize, Rebalancer_TransferSizeExcedeed());
         }
 
         // retrieve amounts (make sure to check min and max for that bridge)

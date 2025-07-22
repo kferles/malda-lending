@@ -160,7 +160,6 @@ interface ImTokenGateway {
      */
     error mTokenGateway_UserBlacklisted();
 
-
     // ----------- VIEW -----------
     /**
      * @notice Roles

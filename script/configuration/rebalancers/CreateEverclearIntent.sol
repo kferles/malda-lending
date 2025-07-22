@@ -7,7 +7,7 @@ import {IEverclearSpoke} from "src/interfaces/external/everclear/IEverclearSpoke
 
 contract CreateEverclearIntent is Script {
     function run() public virtual {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         address everclearSpoke = 0xf9A4d8cED1b8c53B39429BB9a8A391b74E85aE5C; //op sep
         bytes memory data = "";

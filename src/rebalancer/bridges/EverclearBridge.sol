@@ -127,7 +127,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         // message contains data obtained from `https://api.everclear.org/intents` call
         // data can be decoded into `FeeAdapter.newIntent` call params
 
-        // skip selector        
+        // skip selector
         bytes memory intentData = BytesLib.slice(message, 4, message.length - 4);
         (
             uint32[] memory destinations,
@@ -140,21 +140,9 @@ contract EverclearBridge is BaseBridge, IBridge {
             bytes memory data,
             IFeeAdapter.FeeParams memory feeParams
         ) = abi.decode(
-            intentData,
-            (
-                uint32[],
-                bytes32,
-                address,
-                bytes32,
-                uint256,
-                uint24,
-                uint48,
-                bytes,
-                IFeeAdapter.FeeParams
-            )
+            intentData, (uint32[], bytes32, address, bytes32, uint256, uint24, uint48, bytes, IFeeAdapter.FeeParams)
         );
 
         return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
     }
-
 }

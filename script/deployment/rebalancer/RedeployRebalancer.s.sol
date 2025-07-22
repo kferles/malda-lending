@@ -23,20 +23,20 @@ contract RedeployRebalancer is Script {
         address saveAddress = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
         Deployer deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
 
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         bytes32 salt = getSalt("RebalancerV1.0.0");
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
+            created =
+                deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
         } else {
             console.log("Using existing Rebalancer at: %s", created);
         }
-
 
         // assign roles
         vm.startBroadcast(key);

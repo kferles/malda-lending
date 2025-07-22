@@ -1,5 +1,5 @@
 # mErc20
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\mToken\mErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\mErc20.sol)
 
 **Inherits:**
 [mToken](/src\mToken\mToken.sol\abstract.mToken.md), [ImErc20](/src\interfaces\ImErc20.sol\interface.ImErc20.md)

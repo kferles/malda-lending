@@ -21,7 +21,7 @@ contract DeployMixedPriceOracleV3 is Script {
         public
         returns (address)
     {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         uint256 len = feeds.length;
         string[] memory symbols = new string[](len);
@@ -60,7 +60,7 @@ contract DeployMixedPriceOracleV3 is Script {
         public
         returns (address)
     {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
 
         string[] memory symbols = new string[](2);
         symbols[0] = "mUSDC";

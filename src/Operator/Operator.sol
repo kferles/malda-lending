@@ -196,12 +196,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         allMarkets.push(mToken);
 
         emit MarketListed(mToken);
-    }   
+    }
 
     /**
      * @notice Sets outflow volume time window
      * @param newTimeWindow The new reset time window
-     */  
+     */
     function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
         emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
         outflowResetTimeWindow = newTimeWindow;
@@ -211,7 +211,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @notice Sets outflow volume limit
      * @dev when 0, it means there's no limit
      * @param amount The new limit
-     */    
+     */
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
         limitPerTimePeriod = amount;
@@ -219,7 +219,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     /**
      * @notice Resets outflow volume
-     */  
+     */
     function resetOutflowVolume() external onlyOwner {
         cumulativeOutflowVolume = 0;
         emit OutflowVolumeReset();
@@ -228,13 +228,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @notice Verifies outflow volule limit
      * @param amount The new limit
-     */    
+     */
     function checkOutflowVolumeLimit(uint256 amount) external {
         require(markets[msg.sender].isListed, Operator_MarketNotListed());
 
         // skip this check in case limit is disabled ( = 0)
         if (limitPerTimePeriod > 0) {
-
             // check if we need to reset it
             if (block.timestamp > lastOutflowResetTimestamp + outflowResetTimeWindow) {
                 cumulativeOutflowVolume = 0;
@@ -429,7 +428,9 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         Exp memory numerator;
         Exp memory denominator;
         Exp memory ratio;
-        numerator = mul_(Exp({mantissa: liquidationIncentiveMantissa[mTokenCollateral]}), Exp({mantissa: priceBorrowedMantissa}));
+        numerator = mul_(
+            Exp({mantissa: liquidationIncentiveMantissa[mTokenCollateral]}), Exp({mantissa: priceBorrowedMantissa})
+        );
         denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
         ratio = div_(numerator, denominator);
 
@@ -542,18 +543,20 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     {
         _claim(holders, mTokens, borrowers, suppliers);
     }
-    
+
     /**
      * @notice Returns USD value for all markets
-    */
+     */
     function getUSDValueForAllMarkets() external view returns (uint256) {
         uint256 sum;
         for (uint256 i; i < allMarkets.length;) {
             ImToken _market = ImToken(allMarkets[i]);
-            if (_isDeprecated(address(_market))) { continue;}
+            if (_isDeprecated(address(_market))) continue;
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
-            unchecked {  ++i; }
+            unchecked {
+                ++i;
+            }
         }
         return sum;
     }
@@ -720,8 +723,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         return mul_(amount, oraclePrice) / 1e10;
     }
 
-    
-
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
         require(marketToJoin.isListed, Operator_MarketNotListed());
@@ -775,7 +776,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
             // sumCollateral += tokensToDenom * mTokenBalance
             vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.mTokenBalance, vars.sumCollateral);
-            
 
             // sumBorrowPlusEffects += oraclePrice * borrowBalance
             vars.sumBorrowPlusEffects =

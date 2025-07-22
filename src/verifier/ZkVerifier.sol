@@ -49,6 +49,7 @@ contract ZkVerifier is Ownable, IZkVerifier {
 
     constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner) {
         require(_verifier != address(0), ZkVerifier_InputNotValid());
+        require(_imageId != bytes32(0), ZkVerifier_InputNotValid());
         verifier = IRiscZeroVerifier(_verifier);
         imageId = _imageId;
     }
@@ -89,7 +90,6 @@ contract ZkVerifier is Ownable, IZkVerifier {
         // verify input
         __verify(journalEntry, seal);
     }
-
 
     // ----------- PRIVATE ------------
     function _checkAddresses() private view {

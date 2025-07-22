@@ -13,16 +13,12 @@ import {console} from "forge-std/console.sol";
 import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
-contract MockAdapter  {
+contract MockAdapter {
     uint8 public decimals = 8;
     int256 public price = 1e8;
     uint256 public updatedAt = block.timestamp;
 
-    function latestRoundData()
-        external
-        view
-        returns (uint80, int256, uint256, uint256, uint80)
-    {
+    function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         return (0, price, 0, updatedAt, 0);
     }
 

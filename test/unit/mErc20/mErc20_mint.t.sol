@@ -129,7 +129,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         mWeth.mint(amount, address(this), amount);
 
         operator.setWhitelistedUser(address(this), true);
-        mWeth.mint(amount, address(this), amount);  
+        mWeth.mint(amount, address(this), amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();

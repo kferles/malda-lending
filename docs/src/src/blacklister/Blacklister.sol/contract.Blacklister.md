@@ -1,8 +1,8 @@
 # Blacklister
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/076616677457911e7c8925ff7d5fe2dec2ca1497/src\blacklister\Blacklister.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\blacklister\Blacklister.sol)
 
 **Inherits:**
-OwnableUpgradeable
+OwnableUpgradeable, [IBlacklister](/src\interfaces\IBlacklister.sol\interface.IBlacklister.md)
 
 
 ## State Variables
@@ -13,31 +13,10 @@ mapping(address => bool) public isBlacklisted;
 ```
 
 
-### blacklistedAddresses
+### _blacklistedList
 
 ```solidity
-address[] blacklistedAddresses;
-```
-
-
-### proposedForBlacklist
-
-```solidity
-mapping(address => bool) public proposedForBlacklist;
-```
-
-
-### blacklistProposalTimestamp
-
-```solidity
-mapping(address => uint256) public blacklistProposalTimestamp;
-```
-
-
-### proposalExpiryTime
-
-```solidity
-uint256 public proposalExpiryTime = 3 days;
+address[] private _blacklistedList;
 ```
 
 
@@ -66,6 +45,13 @@ constructor();
 function initialize(address payable _owner, address _roles) external initializer;
 ```
 
+### onlyOwnerOrGuardian
+
+
+```solidity
+modifier onlyOwnerOrGuardian();
+```
+
 ### getBlacklistedAddresses
 
 
@@ -73,71 +59,32 @@ function initialize(address payable _owner, address _roles) external initializer
 function getBlacklistedAddresses() external view returns (address[] memory);
 ```
 
-### isProposalExpired
-
-
-```solidity
-function isProposalExpired(address user) public view returns (bool);
-```
-
 ### blacklist
 
 
 ```solidity
-function blacklist(address user) external onlyOwner;
+function blacklist(address user) external override onlyOwnerOrGuardian;
 ```
 
 ### unblacklist
 
 
 ```solidity
-function unblacklist(address user) external onlyOwner;
+function unblacklist(address user) external override onlyOwnerOrGuardian;
 ```
 
-### proposeToBlacklist
+### _addToBlacklist
 
 
 ```solidity
-function proposeToBlacklist(address user) external;
+function _addToBlacklist(address user) internal;
 ```
 
-### approveBlacklist
+### _removeFromBlacklistList
 
 
 ```solidity
-function approveBlacklist(address user) external onlyOwner;
-```
-
-### setProposalExpiry
-
-
-```solidity
-function setProposalExpiry(uint256 expiry) external onlyOwner;
-```
-
-## Events
-### Blacklisted
-
-```solidity
-event Blacklisted(address indexed user);
-```
-
-### Unblacklisted
-
-```solidity
-event Unblacklisted(address indexed user);
-```
-
-### BlacklistProposed
-
-```solidity
-event BlacklistProposed(address indexed user);
-```
-
-### BlacklistProposalExpiry
-
-```solidity
-event BlacklistProposalExpiry(uint256 newVal);
+function _removeFromBlacklistList(address user) internal;
 ```
 
 ## Errors
@@ -153,27 +100,9 @@ error Blacklister_AlreadyBlacklisted();
 error Blacklister_NotBlacklisted();
 ```
 
-### Blacklister_AlreadyProposed
-
-```solidity
-error Blacklister_AlreadyProposed();
-```
-
-### Blacklister_NotProposed
-
-```solidity
-error Blacklister_NotProposed();
-```
-
 ### Blacklister_NotAllowed
 
 ```solidity
 error Blacklister_NotAllowed();
-```
-
-### Blacklister_ProposalExpired
-
-```solidity
-error Blacklister_ProposalExpired();
 ```
 

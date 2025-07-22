@@ -25,7 +25,7 @@ contract DeployMockToken is Script {
     function run(Deployer deployer) public returns (address) {
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Mock-wstETH")));
 
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address created = deployer.create(

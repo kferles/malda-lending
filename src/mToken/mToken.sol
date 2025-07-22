@@ -33,7 +33,6 @@ import {mTokenConfiguration} from "./mTokenConfiguration.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
-
     constructor() {
         borrowRateMaxMantissa = 0.0005e16;
     }
@@ -46,6 +45,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param symbol_ EIP-20 symbol of this token
      * @param decimals_ EIP-20 decimal precision of this token
      */
+
     function _initializeMToken(
         address operator_,
         address interestRateModel_,
@@ -314,7 +314,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         __borrow(payable(user), payable(user), borrowAmount, doTransfer);
     }
 
-        /**
+    /**
      * @notice Sender borrows assets from the protocol to their own address
      * @param user The user address
      * @param receiver The underlying receiver address
@@ -557,7 +557,9 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Users borrow assets from the protocol to their own address
      * @param borrowAmount The amount of the underlying asset to borrow
      */
-    function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer) private {
+    function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
+        private
+    {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
         require(_getCashPrior() >= borrowAmount, mt_BorrowCashNotAvailable());

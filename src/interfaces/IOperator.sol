@@ -140,19 +140,19 @@ interface IOperator {
     function isOperator() external view returns (bool);
 
     /**
-     * @notice Should return outflow limit 
+     * @notice Should return outflow limit
      */
-    function limitPerTimePeriod() external view returns (uint256); 
+    function limitPerTimePeriod() external view returns (uint256);
 
     /**
-     * @notice Should return outflow volume 
+     * @notice Should return outflow volume
      */
-    function cumulativeOutflowVolume() external view returns (uint256); 
+    function cumulativeOutflowVolume() external view returns (uint256);
 
     /**
      * @notice Should return last reset time for outflow check
      */
-    function lastOutflowResetTimestamp() external view returns (uint256); 
+    function lastOutflowResetTimestamp() external view returns (uint256);
 
     /**
      * @notice Should return the outflow volume time window
@@ -259,7 +259,6 @@ interface IOperator {
      * @notice Returns USD value for all markets
      */
     function getUSDValueForAllMarkets() external view returns (uint256);
-
 
     /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
