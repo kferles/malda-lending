@@ -76,6 +76,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     {
         __Ownable_init(_owner);
         require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
+        require(_underlying != address(0), mTokenGateway_AddressNotValid());
+        require(_roles != address(0), mTokenGateway_AddressNotValid());
 
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
